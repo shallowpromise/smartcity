@@ -1,0 +1,16 @@
+﻿{
+  "name": "shenlan-flood-twin",
+  "version": "1.0.0",
+  "description": "深澜 · 城市积水风险智慧预警平台（课程设计原型）",
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "record": "node record_video.mjs"
+  },
+  "keywords": ["smart-city", "flood", "threejs", "digital-twin"],
+  "license": "MIT",
+  "devDependencies": {
+    "playwright": "^1.50.1",
+    "three": "^0.180.0"
+  }
+}

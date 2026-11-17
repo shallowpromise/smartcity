@@ -1,0 +1,209 @@
+[
+  {
+    "id": "replay-2309",
+    "name": "2023·9·7 特大暴雨复盘",
+    "short": "9·7 复盘",
+    "tag": "历史极端",
+    "desc": "基于深圳 2023 年 9 月 7—8 日特大暴雨实况校准，双峰强降雨，累计约 300mm。",
+    "severity": "extreme",
+    "color": "#ff4d5e",
+    "startTime": "2023-09-07T18:00:00+08:00",
+    "startLabel": "2023-09-07 18:00",
+    "totalRain": 300.0,
+    "maxRain": 80.6,
+    "confidence": 0.88,
+    "note": "降雨过程依据深圳气象局实况与 ERA5-Land 再分析校准；产汇流参数按福田下垫面率定。",
+    "stats": {
+      "maxDepth": 1.553,
+      "maxAreaHa": 156.4,
+      "maxPop": 27468,
+      "peakFrame": 48,
+      "peakTime": 480,
+      "warnPeak": 16,
+      "totalRain": 300.0,
+      "maxRain": 80.6
+    },
+    "hotspots": [
+      {
+        "id": "SN-03",
+        "name": "福华三路·会展中心",
+        "peak": 1.55,
+        "time": 470,
+        "type": "road"
+      },
+      {
+        "id": "SN-06",
+        "name": "华强北路·女人世界",
+        "peak": 1.25,
+        "time": 420,
+        "type": "underpass"
+      },
+      {
+        "id": "SN-02",
+        "name": "滨河大道·益田路下穿",
+        "peak": 1.16,
+        "time": 460,
+        "type": "underpass"
+      },
+      {
+        "id": "SN-11",
+        "name": "益田路·福民",
+        "peak": 1.13,
+        "time": 470,
+        "type": "community"
+      },
+      {
+        "id": "SN-01",
+        "name": "深南大道·香蜜湖立交",
+        "peak": 1.01,
+        "time": 460,
+        "type": "underpass"
+      },
+      {
+        "id": "SN-04",
+        "name": "金田路·皇岗村",
+        "peak": 0.96,
+        "time": 450,
+        "type": "community"
+      }
+    ]
+  },
+  {
+    "id": "design-50",
+    "name": "50 年一遇设计暴雨",
+    "short": "50 年一遇",
+    "tag": "极端工况",
+    "desc": "依据排水防涝设计标准构造的 50 年一遇 24h 设计暴雨，8h 累计约 340mm。",
+    "severity": "extreme",
+    "color": "#ff9f43",
+    "startTime": "2026-07-15T14:00:00+08:00",
+    "startLabel": "2026-07-15 14:00",
+    "totalRain": 340.0,
+    "maxRain": 96.0,
+    "confidence": 0.82,
+    "note": "设计雨型为芝加哥雨型概化，峰值 95mm/h；管网能力按 3—5 年一遇概化。",
+    "stats": {
+      "maxDepth": 2.329,
+      "maxAreaHa": 299.0,
+      "maxPop": 58236,
+      "peakFrame": 48,
+      "peakTime": 480,
+      "warnPeak": 16,
+      "totalRain": 340.0,
+      "maxRain": 96.0
+    },
+    "hotspots": [
+      {
+        "id": "SN-03",
+        "name": "福华三路·会展中心",
+        "peak": 2.33,
+        "time": 470,
+        "type": "road"
+      },
+      {
+        "id": "SN-06",
+        "name": "华强北路·女人世界",
+        "peak": 1.79,
+        "time": 390,
+        "type": "underpass"
+      },
+      {
+        "id": "SN-13",
+        "name": "中心公园排洪渠",
+        "peak": 1.61,
+        "time": 380,
+        "type": "river"
+      },
+      {
+        "id": "SN-07",
+        "name": "上步路·荔枝公园",
+        "peak": 1.52,
+        "time": 450,
+        "type": "road"
+      },
+      {
+        "id": "SN-02",
+        "name": "滨河大道·益田路下穿",
+        "peak": 1.4,
+        "time": 420,
+        "type": "underpass"
+      },
+      {
+        "id": "SN-04",
+        "name": "金田路·皇岗村",
+        "peak": 1.35,
+        "time": 430,
+        "type": "community"
+      }
+    ]
+  },
+  {
+    "id": "design-5",
+    "name": "5 年一遇设计暴雨",
+    "short": "5 年一遇",
+    "tag": "常规工况",
+    "desc": "常规排水标准对应的 5 年一遇降雨，8h 累计约 140mm，用于检验系统日常能力。",
+    "severity": "moderate",
+    "color": "#ffc15e",
+    "startTime": "2026-06-20T16:00:00+08:00",
+    "startLabel": "2026-06-20 16:00",
+    "totalRain": 140.0,
+    "maxRain": 44.5,
+    "confidence": 0.9,
+    "note": "5 年一遇设计暴雨，管网基本满负荷运行，低洼点出现短时积水。",
+    "stats": {
+      "maxDepth": 0.416,
+      "maxAreaHa": 6.3,
+      "maxPop": 779,
+      "peakFrame": 40,
+      "peakTime": 400,
+      "warnPeak": 8,
+      "totalRain": 140.0,
+      "maxRain": 44.5
+    },
+    "hotspots": [
+      {
+        "id": "SN-11",
+        "name": "益田路·福民",
+        "peak": 0.42,
+        "time": 390,
+        "type": "community"
+      },
+      {
+        "id": "SN-01",
+        "name": "深南大道·香蜜湖立交",
+        "peak": 0.37,
+        "time": 350,
+        "type": "underpass"
+      },
+      {
+        "id": "SN-02",
+        "name": "滨河大道·益田路下穿",
+        "peak": 0.35,
+        "time": 320,
+        "type": "underpass"
+      },
+      {
+        "id": "SN-15",
+        "name": "华强南·地下通道",
+        "peak": 0.34,
+        "time": 320,
+        "type": "underpass"
+      },
+      {
+        "id": "SN-03",
+        "name": "福华三路·会展中心",
+        "peak": 0.27,
+        "time": 310,
+        "type": "road"
+      },
+      {
+        "id": "SN-10",
+        "name": "香蜜湖路·车公庙",
+        "peak": 0.26,
+        "time": 330,
+        "type": "road"
+      }
+    ]
+  }
+]

@@ -1,0 +1,56 @@
+{
+  "name": "深澜 · 城市积水风险智慧预警平台",
+  "city": "深圳市",
+  "district": "福田区",
+  "area": "莲花山—中心公园—福田CBD—华强北",
+  "bbox": [
+    114.04,
+    22.533,
+    114.1,
+    22.572
+  ],
+  "center": [
+    114.07,
+    22.552500000000002
+  ],
+  "world": [
+    6175.3,
+    4323.2
+  ],
+  "terrain": {
+    "nx": 256,
+    "ny": 184,
+    "elevMin": 0.6,
+    "elevMax": 150.09
+  },
+  "model": {
+    "nx": 192,
+    "ny": 136,
+    "cell": 32.2
+  },
+  "buildings": 3871,
+  "sensors": 16,
+  "sources": [
+    {
+      "name": "Mapzen Terrarium / AWS Open Data",
+      "use": "数字高程模型 DEM",
+      "license": "CC-BY / public"
+    },
+    {
+      "name": "OpenStreetMap contributors",
+      "use": "建筑、道路、水系、绿地",
+      "license": "ODbL 1.0"
+    },
+    {
+      "name": "Open-Meteo ERA5-Land",
+      "use": "2023-09-07/08 历史小时降雨",
+      "license": "CC-BY 4.0"
+    },
+    {
+      "name": "深圳市气象局公开报道",
+      "use": "暴雨过程实况校核",
+      "license": "公开信息"
+    }
+  ],
+  "generated": "2026-11-17"
+}

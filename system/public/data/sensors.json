@@ -1,0 +1,370 @@
+[
+  {
+    "id": "SN-01",
+    "name": "深南大道·香蜜湖立交",
+    "type": "underpass",
+    "community": "车公庙片区",
+    "lon": 114.049608,
+    "lat": 22.541884,
+    "x": 981.0,
+    "z": 3353.7,
+    "ground": 7.96,
+    "threshold": [
+      0.1,
+      0.2,
+      0.35
+    ],
+    "calibrated": true,
+    "street": "香蜜湖街道",
+    "rainThreshold": [
+      30,
+      40,
+      70
+    ]
+  },
+  {
+    "id": "SN-02",
+    "name": "滨河大道·益田路下穿",
+    "type": "underpass",
+    "community": "福田口岸片区",
+    "lon": 114.053902,
+    "lat": 22.537181,
+    "x": 1431.2,
+    "z": 3862.3,
+    "ground": 1.47,
+    "threshold": [
+      0.1,
+      0.2,
+      0.35
+    ],
+    "calibrated": true,
+    "street": "福保街道",
+    "rainThreshold": [
+      40,
+      45,
+      80
+    ]
+  },
+  {
+    "id": "SN-03",
+    "name": "福华三路·会展中心",
+    "type": "road",
+    "community": "会展中心片区",
+    "lon": 114.057974,
+    "lat": 22.537046,
+    "x": 1849.4,
+    "z": 3862.3,
+    "ground": 2.92,
+    "threshold": [
+      0.15,
+      0.3,
+      0.5
+    ],
+    "calibrated": true,
+    "street": "福田街道",
+    "rainThreshold": [
+      30,
+      50,
+      80
+    ]
+  },
+  {
+    "id": "SN-04",
+    "name": "金田路·皇岗村",
+    "type": "community",
+    "community": "皇岗片区",
+    "lon": 114.056076,
+    "lat": 22.536396,
+    "x": 1656.4,
+    "z": 3957.7,
+    "ground": 1.36,
+    "threshold": [
+      0.15,
+      0.3,
+      0.5
+    ],
+    "calibrated": true,
+    "street": "福田街道",
+    "rainThreshold": [
+      30,
+      50,
+      80
+    ]
+  },
+  {
+    "id": "SN-05",
+    "name": "彩田路·中心公园",
+    "type": "road",
+    "community": "中心公园片区",
+    "lon": 114.056964,
+    "lat": 22.549283,
+    "x": 1752.9,
+    "z": 2527.2,
+    "ground": 2.57,
+    "threshold": [
+      0.15,
+      0.3,
+      0.5
+    ],
+    "calibrated": true,
+    "street": "华富街道",
+    "rainThreshold": [
+      35,
+      45,
+      80
+    ]
+  },
+  {
+    "id": "SN-06",
+    "name": "华强北路·女人世界",
+    "type": "underpass",
+    "community": "华强北商圈",
+    "lon": 114.084219,
+    "lat": 22.540546,
+    "x": 4551.0,
+    "z": 3480.8,
+    "ground": 8.74,
+    "threshold": [
+      0.1,
+      0.2,
+      0.35
+    ],
+    "calibrated": true,
+    "street": "华强北街道",
+    "rainThreshold": [
+      40,
+      65,
+      100
+    ]
+  },
+  {
+    "id": "SN-07",
+    "name": "上步路·荔枝公园",
+    "type": "road",
+    "community": "园岭片区",
+    "lon": 114.072915,
+    "lat": 22.551923,
+    "x": 3393.2,
+    "z": 2241.1,
+    "ground": 1.65,
+    "threshold": [
+      0.15,
+      0.3,
+      0.5
+    ],
+    "calibrated": true,
+    "street": "园岭街道",
+    "rainThreshold": [
+      35,
+      45,
+      80
+    ]
+  },
+  {
+    "id": "SN-08",
+    "name": "红荔路·莲花山南门",
+    "type": "road",
+    "community": "莲花山片区",
+    "lon": 114.058178,
+    "lat": 22.548247,
+    "x": 1881.5,
+    "z": 2622.5,
+    "ground": 1.65,
+    "threshold": [
+      0.15,
+      0.3,
+      0.5
+    ],
+    "calibrated": true,
+    "street": "莲花街道",
+    "rainThreshold": [
+      40,
+      45,
+      65
+    ]
+  },
+  {
+    "id": "SN-09",
+    "name": "新洲路·景田",
+    "type": "community",
+    "community": "景田片区",
+    "lon": 114.04364,
+    "lat": 22.549547,
+    "x": 369.9,
+    "z": 2495.4,
+    "ground": 8.37,
+    "threshold": [
+      0.15,
+      0.3,
+      0.5
+    ],
+    "calibrated": true,
+    "street": "莲花街道",
+    "rainThreshold": [
+      40,
+      45,
+      65
+    ]
+  },
+  {
+    "id": "SN-10",
+    "name": "香蜜湖路·车公庙",
+    "type": "road",
+    "community": "车公庙片区",
+    "lon": 114.047977,
+    "lat": 22.537417,
+    "x": 820.2,
+    "z": 3830.5,
+    "ground": 1.41,
+    "threshold": [
+      0.15,
+      0.3,
+      0.5
+    ],
+    "calibrated": true,
+    "street": "香蜜湖街道",
+    "rainThreshold": [
+      30,
+      40,
+      70
+    ]
+  },
+  {
+    "id": "SN-11",
+    "name": "益田路·福民",
+    "type": "community",
+    "community": "福民片区",
+    "lon": 114.056929,
+    "lat": 22.536498,
+    "x": 1752.9,
+    "z": 3925.9,
+    "ground": 4.48,
+    "threshold": [
+      0.15,
+      0.3,
+      0.5
+    ],
+    "calibrated": true,
+    "street": "福保街道",
+    "rainThreshold": [
+      40,
+      45,
+      80
+    ]
+  },
+  {
+    "id": "SN-12",
+    "name": "北环大道·彩田",
+    "type": "road",
+    "community": "梅林片区",
+    "lon": 114.062639,
+    "lat": 22.566769,
+    "x": 2331.8,
+    "z": 588.1,
+    "ground": 10.51,
+    "threshold": [
+      0.15,
+      0.3,
+      0.5
+    ],
+    "calibrated": true,
+    "street": "梅林街道",
+    "rainThreshold": [
+      30,
+      45,
+      70
+    ]
+  },
+  {
+    "id": "SN-13",
+    "name": "中心公园排洪渠",
+    "type": "river",
+    "community": "中心公园片区",
+    "lon": 114.073299,
+    "lat": 22.555453,
+    "x": 3425.3,
+    "z": 1827.8,
+    "ground": 3.65,
+    "threshold": [
+      0.3,
+      0.6,
+      1.0
+    ],
+    "calibrated": true,
+    "street": "华富街道",
+    "rainThreshold": [
+      35,
+      45,
+      80
+    ]
+  },
+  {
+    "id": "SN-14",
+    "name": "市民中心广场",
+    "type": "community",
+    "community": "市民中心片区",
+    "lon": 114.06027,
+    "lat": 22.55037,
+    "x": 2074.5,
+    "z": 2400.0,
+    "ground": 4.59,
+    "threshold": [
+      0.15,
+      0.3,
+      0.5
+    ],
+    "calibrated": true,
+    "street": "福田街道",
+    "rainThreshold": [
+      30,
+      50,
+      80
+    ]
+  },
+  {
+    "id": "SN-15",
+    "name": "华强南·地下通道",
+    "type": "underpass",
+    "community": "华强南片区",
+    "lon": 114.084219,
+    "lat": 22.544848,
+    "x": 4551.0,
+    "z": 3004.0,
+    "ground": 15.07,
+    "threshold": [
+      0.1,
+      0.2,
+      0.35
+    ],
+    "calibrated": true,
+    "street": "华强北街道",
+    "rainThreshold": [
+      40,
+      65,
+      100
+    ]
+  },
+  {
+    "id": "SN-16",
+    "name": "福中路·莲花村",
+    "type": "community",
+    "community": "莲花村片区",
+    "lon": 114.055107,
+    "lat": 22.547979,
+    "x": 1559.9,
+    "z": 2654.3,
+    "ground": 3.12,
+    "threshold": [
+      0.15,
+      0.3,
+      0.5
+    ],
+    "calibrated": true,
+    "street": "莲花街道",
+    "rainThreshold": [
+      40,
+      45,
+      65
+    ]
+  }
+]
