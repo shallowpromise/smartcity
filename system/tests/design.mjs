@@ -20,7 +20,9 @@ try{
  await page.setViewportSize({width:900,height:780});
  await page.locator('[data-view="monitor"]').click();assert.equal(await page.locator('.panel-right').isVisible(),true);
  await page.locator('#btn-focus').click();assert.equal(await page.locator('.panel-right').isVisible(),false);
- await page.emulateMedia({reducedMotion:'reduce',contrast:'more'});
+ const cdp=await page.context().newCDPSession(page);
+ await cdp.send('Emulation.setEmulatedMedia',{features:[{name:'prefers-contrast',value:'more'},{name:'prefers-reduced-motion',value:'reduce'}]});
+ await page.waitForFunction(()=>matchMedia('(prefers-contrast: more)').matches);
  assert.equal(await page.locator('.topbar').evaluate(el=>getComputedStyle(el).backdropFilter),'none');
  console.log('PASS: data note visible at both desktop sizes; focus mode, compact risk panel, increased contrast and reduced-motion styles.');
 }finally{await browser.close();}
