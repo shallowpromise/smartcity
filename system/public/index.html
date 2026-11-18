@@ -6,6 +6,7 @@
 <link rel="icon" href="data:," />
 <title>深澜 · 城市积水风险智慧预警平台</title>
 <link rel="stylesheet" href="./src/style.css" />
+<link rel="stylesheet" href="./src/apple-design.css" />
 <script type="importmap">
 { "imports": { "three": "./vendor/three/three.module.js", "three/addons/": "./vendor/jsm/" } }
 </script>
@@ -42,6 +43,7 @@
     </nav>
 
     <div class="top-right">
+      <button id="btn-focus" aria-pressed="false" title="隐藏侧栏，专注三维地图">专注地图</button>
       <div class="weather">
         <svg class="wi" viewBox="0 0 24 24"><path d="M7 17.5a4 4 0 0 1-.6-7.95A5.5 5.5 0 0 1 17.2 9.1 3.8 3.8 0 0 1 17 17.5H7Z" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 20.5l-1 1.6M12 20.5l-1 1.6M16 20.5l-1 1.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
         <div><b>暴雨情景推演</b><span>预计算模型 · 非实时气象</span></div>
@@ -50,7 +52,7 @@
         <b id="clock-time">--:--:--</b>
         <span id="clock-date">2026-11-17 星期二</span>
       </div>
-      <div class="status-chip"><i></i>本地演示</div>
+      <div class="status-chip"><i></i>模型演示</div>
     </div>
   </header>
 

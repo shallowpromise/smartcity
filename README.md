@@ -36,3 +36,9 @@ node --test system/tests/timeline.test.mjs
 沿用原项目的数据与模型成果：© OpenStreetMap contributors（ODbL 1.0）；Mapzen Terrarium / AWS Open Data；Open-Meteo ERA5-Land（CC-BY 4.0）；深圳市相关部门公开信息。详细来源和研究方法参见原项目。未重新采集数据或重建水文模型。
 
 风险色标沿用原型前端规则；道路/社区蓝 0.05、黄 0.15、橙 0.30、红 0.50、紫 1.00 m，下穿乘 0.62，河道乘 1.6，并非官方预警标准。页面计数使用该规则，与原情景文件中的 warn 字段口径存在差异，待模型负责人统一确认。
+
+## 界面设计
+
+本次美化采用 [apple-design 技能](https://github.com/tzzs/apple-design-skill) 的内容层级、材质与可访问性指导，为桌面网页实现独立的 `apple-design.css`：玻璃质感导航与工具栏、稳定的数据卡片背景、系统字体、统一圆角、克制的蓝色主操作，以及高对比度/减少动态效果支持。这是网页视觉适配，并非 Apple 原生 Liquid Glass 组件。
+
+顶部“专注地图”可隐藏侧栏，点击“显示面板”或导航可恢复。原三维模型、风险色标、播放及重置功能保持不变。

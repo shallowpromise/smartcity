@@ -170,6 +170,11 @@ export const ui = {
       mcDepth: $('mc-depth'), mcTrend: $('mc-trend'), mcGround: $('mc-ground'), mcThr: $('mc-thr'),
       mcCanvas: $('mc-canvas'), mcAdvice: $('mc-advice'), toast: $('toast'),
     };
+    $('btn-focus').onclick = () => {
+      const focused = document.body.classList.toggle('map-focused');
+      $('btn-focus').setAttribute('aria-pressed', String(focused));
+      $('btn-focus').textContent = focused ? '显示面板' : '专注地图';
+    };
     // 事件
     this.dom.play.onclick = () => this.app.togglePlay();
     this.dom.reset.onclick = () => { this.app.togglePlay(false); this.app.setFrame(0); this.toast('已暂停并回到情景起点'); };
@@ -260,7 +265,7 @@ export const ui = {
     this.dom.tag.style.background = scn.color + '12';
     this.dom.rainPeak.textContent = `峰值 ${Number.isFinite(scn.maxRain) ? scn.maxRain.toFixed(0) : '暂无数据'} mm/h · 累计 ${Number.isFinite(scn.totalRain) ? scn.totalRain.toFixed(0) : '暂无数据'} mm`;
     this.dom.confidence.textContent = '预计算情景';
-    this.dom.modelNote.textContent = '历史降雨 / 设计雨型驱动模型；虚拟点位未经逐点实测率定。仅供课程展示，不用于真实防汛决策。';
+    this.dom.modelNote.textContent = '预计算模型与虚拟点位，未经实测率定。仅供课程展示，不用于真实防汛决策。';
     this.dom.timeline.max = String(scn.frames.length - 1);
     this.dom.timeline.value = '0';
     const ticks = document.querySelectorAll('.tl-ticks span');
@@ -414,6 +419,9 @@ export const ui = {
   },
 
   setView(view) {
+    document.body.classList.remove('map-focused');
+    $('btn-focus').setAttribute('aria-pressed', 'false');
+    $('btn-focus').textContent = '专注地图';
     document.body.dataset.view = view;
     document.querySelectorAll('.nav-item').forEach(b => {
       b.classList.toggle('active', b.dataset.view === view);
