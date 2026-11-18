@@ -85,7 +85,7 @@ export function createSensors(sensors, meta, sampleElev, onPick) {
   const pointer = new THREE.Vector2();
   let down = null;
   function onDown(e) {
-    if (e.target !== document.querySelector('#scene-wrap canvas')) return;
+    if (document.body.classList.contains('route-picking') || e.target !== document.querySelector('#scene-wrap canvas')) { down=null; return; }
     down = { x: e.clientX, y: e.clientY };
   }
   function onUp(e) {

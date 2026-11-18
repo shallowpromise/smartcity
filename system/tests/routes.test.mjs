@@ -1,69 +1,51 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import {readFileSync} from 'node:fs';
 import test from 'node:test';
-import { compareRoutes } from '../public/src/route-comparison.js';
+import {prepareNetwork,shortestPath,routeAtFrame} from '../public/src/road-router.js';
 
-const read = name => JSON.parse(readFileSync(new URL('../public/data/' + name, import.meta.url)));
-const routes = read('route-candidates.json');
-const scenarios = read('scenarios/index.json').map(s => read('scenarios/' + s.id + '.json'));
-const replay = scenarios.find(s => s.id === 'replay-2309');
-
-test('threshold excludes equality, missing grid cells do not pass as dry', () => {
-  const paths = [{lengthM: 100, cells: [0]}, {lengthM: 90, cells: [1]}];
-  const result = compareRoutes(paths, [14, 15], 15);
-  assert.equal(result.baseline.path, paths[1]);
-  assert.equal(result.alternative.path, paths[0]);
-  assert.equal(compareRoutes(paths, [15, 16], 15).alternative, undefined);
-  assert.equal(compareRoutes(paths, [0], 15), null);
-  assert.equal(compareRoutes(paths, [null, 0], 15), null);
+const read = name => JSON.parse(readFileSync(new URL('../public/data/'+name+'.json',import.meta.url)));
+const net=prepareNetwork(read('road-network'),read('meta'));
+const id=osm=>net.nodes.findIndex(n=>n[0]===osm);
+const [start,end]=[7959603173,8516154909].map(id);
+const path=shortestPath(net,start,end);
+const replay=read('scenarios/replay-2309');
+const compare=(a,b,t,limit)=>routeAtFrame(net,a,b,shortestPath(net,a,b),Buffer.from(replay.frames[t/10].depth,'base64'),limit);
+test('Fuhua example avoids the flagged street with a modest distance increase',()=>{
+  const r=compare(start,end,240,15);
+  assert.equal(r.status,'detour');
+  assert.deepEqual([Math.round(r.baseline.lengthM),Math.round(r.alternative.lengthM),r.baselinePeak,r.alternativePeak],[1196,1251,49,2]);
+  assert.equal(r.hotspot.name,'福华一路');
+  assert.ok(r.flooded.length>0);
+  assert.deepEqual(r.alternative.points[0],path.points[0]);
+  assert.deepEqual(r.alternative.points.at(-1),path.points.at(-1));
+  assert.equal(compare(start,end,0,15).status,'clear');
+  assert.equal(compare(id(7959990831),id(7966386945),360,15).status,'blocked');
 });
-
-test('candidate endpoints, lengths and sampled cells match the published grid', () => {
-  const meta = read('meta.json');
-  assert.deepEqual(routes.grid, [meta.model.nx, meta.model.ny]);
-  assert.deepEqual(routes.world, meta.world);
-  for (const c of routes.cases) {
-    const reference = c.paths[0].points;
-    for (const p of c.paths) {
-      assert.deepEqual(p.points[0], reference[0]);
-      assert.deepEqual(p.points.at(-1), reference.at(-1));
-      const cells = new Set(p.cells);
-      let length = 0;
-      for (let i = 1; i < p.points.length; i++) {
-        const [x,z] = p.points[i-1], [u,v] = p.points[i];
-        const segment = Math.hypot(u-x, v-z);
-        length += segment;
-        const steps = Math.ceil(segment); // Independent 1 m samples along the polyline.
-        for (let k = 0; k <= steps; k++) {
-          const col = Math.floor((x + (u-x)*k/steps) / meta.world[0] * meta.model.nx);
-          const row = Math.floor((z + (v-z)*k/steps) / meta.world[1] * meta.model.ny);
-          assert.ok(cells.has(row * meta.model.nx + col));
-        }
+test('all scenario frames return continuous directed, turn-compliant paths below threshold',()=>{
+  for(const s of read('scenarios/index')) for(const f of read('scenarios/'+s.id).frames){
+    const depth=Buffer.from(f.depth,'base64');
+    for(const limit of [10,15,30]){
+      const r=routeAtFrame(net,start,end,path,depth,limit);
+      if(!r.alternative) continue;
+      let prev=-1,u=start;
+      for(const e of r.alternative.edges){
+        assert.equal(net.edges[e][0],u);assert.ok(!net.forbidden.get(prev)?.has(e));
+        assert.ok(net.edges[e][4].every(c=>depth[c]<limit));
+        prev=e;u=net.edges[e][1];
       }
-      assert.ok(Math.abs(length - p.lengthM) < .06);
+      assert.equal(u,end);assert.ok(r.alternative.lengthM>=path.lengthM);
     }
   }
 });
-
-test('every shipped frame and threshold selects the shortest qualifying candidate', () => {
-  for (const scenario of scenarios) for (const frame of scenario.frames) {
-    const depth = Buffer.from(frame.depth, 'base64');
-    for (const c of routes.cases) for (const threshold of [10, 15, 30]) {
-      const result = compareRoutes(c.paths, depth, threshold);
-      const eligible = c.paths.filter(p => p.cells.every(i => depth[i] < threshold));
-      assert.equal(result.baseline.path.lengthM, Math.min(...c.paths.map(p => p.lengthM)));
-      assert.equal(result.alternative?.path.lengthM, eligible.length ? Math.min(...eligible.map(p => p.lengthM)) : undefined);
-    }
-  }
-});
-
-test('replay exhibits unchanged route, detour and all candidates excluded', () => {
-  const compare = (area, t) => compareRoutes(routes.cases[area].paths,
-    Buffer.from(replay.frames.find(f => f.t === t).depth, 'base64'), 15);
-  const dry = compare(0, 0);
-  assert.equal(dry.alternative, dry.baseline);
-  const wet = compare(0, 240);
-  assert.deepEqual([wet.baseline.path.lengthM, wet.baseline.peakCm], [794.6, 47]);
-  assert.deepEqual([wet.alternative.path.lengthM, wet.alternative.peakCm], [1065, 5]);
-  assert.equal(compare(1, 360).alternative, undefined);
+test('one-way edges, turn bans, missing water and equality at the threshold',()=>{
+  const data={version:1,world:[40,40],grid:[2,2],nodes:[[10,1,1],[11,21,1],[12,21,21],[13,1,21]],
+    names:['街'],edges:[[0,1,0,1,[0,1]],[1,2,0,2,[1,3]],[0,3,0,3,[0,2]],[3,2,0,4,[2,3]]],turns:[[0,1]],junctions:[]};
+  const n=prepareNetwork(data,{world:data.world,model:{nx:2,ny:2}});
+  const p=shortestPath(n,0,2);
+  assert.deepEqual(p.edges,[2,3]);
+  assert.equal(shortestPath(n,2,0),null);
+  assert.equal(routeAtFrame(n,0,2,p,[0,0,15,0],15).status,'blocked');
+  assert.equal(routeAtFrame(n,0,2,p,[0,0,null,0],15).status,'unknown');
+  assert.equal(routeAtFrame(n,2,0,null,[0,0,0,0],15).status,'disconnected');
+  assert.equal(routeAtFrame(n,0,0,null,[0,0,0,0],15).status,'same');
 });

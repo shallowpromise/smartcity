@@ -1,0 +1,68 @@
+/* Optical bevels on floating controls, a stronger tinted body behind dense readings. */
+.topbar,.timeline,.map-tools,.view-presets {
+  background:linear-gradient(135deg,#dffaff20,transparent 24%,#b7f4ff09 64%,#c5efff24),rgba(13,28,40,.62);
+  border:1px solid rgba(219,246,255,.43);
+  border-top-color:rgba(241,252,255,.77);
+  box-shadow:inset 1px 1px 2px #ffffff66,inset -1px -2px 3px #a8e3fa38,0 8px 24px #00132155;
+  -webkit-backdrop-filter:blur(12px) saturate(1.3);
+  backdrop-filter:var(--glass-optics,blur(12px) saturate(1.3));
+}
+.panel,.modal-card {
+  background:linear-gradient(145deg,#d7f3ff13 0%,transparent 32%,#95d7ea09 85%),rgba(17,30,41,.89);
+  border:1px solid #daefff38;border-top-color:#e0f4ff66;
+  box-shadow:inset 0 1px 1px #e6fcff22,0 12px 36px #0013204d;
+}
+.main-nav .nav-item.active,.tool.active,.view-presets button:hover {
+  background:linear-gradient(155deg,#e8fbff39,#c4e8f517);
+  box-shadow:inset 0 1px 1px #ebfcff6b,inset 0 -1px 1px #e3f9ff1a;
+}
+button:focus-visible,select:focus-visible {outline:2px solid #8adaff;outline-offset:2px;}
+body[data-view=routes] .panel-left,body[data-view=routes] .scene-caption,body[data-view=routes] .view-presets {display:none;}
+body[data-view=routes] .map-tools {right:16px;}
+body[data-view=routes] .compass {right:20px;}
+.route-panel {left:16px;right:auto;}
+.route-panel .panel-head {align-items:center;}
+.route-panel .panel-head h2 {font-size:19px;}
+.route-panel .panel-head span {font-size:11px;}
+.route-panel label,.route-stop {font-size:13px;}
+.route-panel select,.route-stop button {
+  border:1px solid #d4edff40;border-radius:9px;background:#243746;color:#f4fbff;
+  min-height:36px;font:inherit;padding:4px 7px;
+}
+.route-stop {display:grid;grid-template-columns:32px minmax(0,1fr) auto;align-items:center;gap:6px;margin:8px 0;}
+.route-stop label {margin:0;}
+.route-stop select {min-width:0;width:100%;text-overflow:ellipsis;}
+.route-stop button {color:#aee2ff;cursor:pointer;}
+.route-key {display:inline-block;width:19px;margin-right:6px;vertical-align:middle;}
+.route-key.normal {border-top:3px dashed #ffba69;} .route-key.avoid {border-top:3px solid #48efd8;}
+.route-panel dt {color:#e8f2f8!important;}
+.route-panel dd {margin-left:25px;}
+#route-result {line-height:1.5;font-weight:600;}
+.route-pin {width:25px;line-height:21px;height:25px;box-sizing:border-box;}
+.peak-pin {width:auto;height:auto;line-height:20px;padding:0 8px;background:#6b1725;color:white;border-color:#ffafaf;border-radius:10px;white-space:nowrap;transform-origin:center;}
+body.route-picking .route-panel,body.route-picking .scene-caption {display:none!important;}
+body.route-picking #scene-wrap canvas {cursor:crosshair;}
+#pick-hint:not([hidden]) {position:absolute;z-index:19;left:50%;top:100px;transform:translateX(-50%);display:flex;align-items:center;gap:12px;border:1px solid #b8dff87a;border-radius:14px;background:#122333ef;color:white;padding:9px 12px;font-size:13px;max-width:94vw;width:max-content;}
+#pick-hint button {background:#e9f7ff1f;color:white;border:0;border-radius:8px;padding:7px;cursor:pointer;}
+@media(max-width:700px) {
+  #pick-hint:not([hidden]) {top:130px;}
+  .route-panel {max-height:min(39dvh,calc(100dvh - 284px));}
+}
+@media (prefers-contrast:more),(prefers-reduced-transparency:reduce),(forced-colors:active) {
+  .topbar,.timeline,.map-tools,.view-presets,.panel,.modal-card {background:#17232d;backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none;border-color:#94a8b6;}
+}
+@media(max-width:700px) {
+  body[data-view=routes]:not(.map-focused) .map-tools {display:none;}
+  body[data-view=routes]:not(.map-focused) .route-panel {display:flex;flex-direction:column;}
+  .route-panel > * {flex-shrink:0;}
+  .route-panel .panel-head {order:-4;margin-bottom:4px;}
+  .route-panel #route-result {order:-3;margin:5px 0;}
+  .route-panel dl {order:-2;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;grid-auto-flow:column;gap:3px 8px;padding:8px 0;margin:5px 0;}
+  .route-panel dl dd {margin:0;font-size:13px;}
+  .route-panel .route-actions {order:-1;margin:5px 0;}
+}
+.peak-pin::after {content:'';position:absolute;bottom:-7px;left:calc(50% - 4px);border:4px solid transparent;border-top-color:#ffafaf;}
+@media(max-width:700px) {
+  body[data-view=routes]:not(.map-focused) .compass {display:none;}
+  body[data-view=routes] .st-label {visibility:hidden;}
+}

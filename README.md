@@ -6,9 +6,7 @@
 
 三维城市与六类图层；三套降雨情景；播放/暂停/倍速/时间轴；16 个虚拟监测点及水深过程线；风险统计、峰值定位、完整演示重置与处置建议示意。
 
-顶部选择「积水绕行」，再点「查看红荔路绕行示例」，即可定位 9·7 复盘的第 4 小时，对比两条路线的距离和沿线最高模型水深。可以切换红荔路、福华三路、福中一路三组起终点，改变演示阈值，或拖动时间轴。无候选线满足条件时，面板会给出提示。
-
-演示采用有向地面路网，按共享 OSM 节点连接道路，考虑基本单行和静态通行标签，排除已标注的桥隧及非地面层。固定路口的候选路线在三套情景各帧和三档阈值下离线求得，网页按当前帧重新比较。任意路口选点、桥隧、禁转、实测与规则校核所需资料见 [A 同学的数据与模型任务单](docs/A_ROUTE_HANDOFF.md)。
+可在「积水绕行」选择两个路口或在地图点选地面道路。系统按当前情景、时刻、方向、转向限制及水深阈值重新计算路线。福华一路示例用红线标出需要避开的积水区段。[直接打开示例](https://shallowpromise.github.io/smartcity/?view=routes) · [数据与模型说明](docs/route-model.md)
 
 所有数据均为静态文件。监测点为模型辅助选址的虚拟点位，水深为模型结果，未经逐点实测率定；仅供课程展示，不用于真实防汛决策。没有实时监测或实际调度接入。
 
@@ -35,16 +33,16 @@ node --test system/tests/*.test.mjs
 
 浏览器回归需在 system 目录执行 `npm ci`、`npx playwright install chromium`；启动本地服务后运行 `node tests/browser.mjs`。`node tests/pages.mjs` 单独创建临时静态服务验证项目子路径。
 
-绕行交互回归可在服务启动后运行 `BASE_URL=http://127.0.0.1:8088 node tests/routes-browser.mjs`。如需重新生成候选路线，在仓库根目录运行 `python3 scripts/build-route-candidates.py /path/to/osm_raw.json`，传入课程源仓库的原始 OSM 文件。
+绕行交互回归可在服务启动后运行 `BASE_URL=http://127.0.0.1:8088 node tests/routes-browser.mjs`。在仓库根目录运行 `node scripts/solve-route.mjs 7959603173 8516154909 replay-2309 240 15` 可复算福华一路案例。
 
 ## 数据来源与归属
 
-沿用原项目的数据与模型成果：© OpenStreetMap contributors（ODbL 1.0）；Mapzen Terrarium / AWS Open Data；Open-Meteo ERA5-Land（CC-BY 4.0）；深圳市相关部门公开信息。详细来源和研究方法参见原项目。未重新采集数据或重建水文模型。
+沿用原项目的数据与模型成果：© OpenStreetMap contributors（ODbL 1.0）；Mapzen Terrarium / AWS Open Data；Open-Meteo ERA5-Land（CC-BY 4.0）；深圳市相关部门公开信息。详细来源和研究方法参见原项目。本版另从 OpenStreetMap 补取转向关系与道路障碍数据，建立地面道路通行及逐帧避水求路模型。
 
 风险色标沿用原型前端规则；道路/社区蓝 0.05、黄 0.15、橙 0.30、红 0.50、紫 1.00 m，下穿乘 0.62，河道乘 1.6，并非官方预警标准。页面计数使用该规则，与原情景文件中的 warn 字段口径存在差异，待模型负责人统一确认。
 
 ## 界面设计
 
-本次美化采用 [apple-design 技能](https://github.com/tzzs/apple-design-skill) 的内容层级、材质与可访问性指导，为桌面网页实现独立的 `apple-design.css`：玻璃质感导航与工具栏、稳定的数据卡片背景、系统字体、统一圆角、克制的蓝色主操作，以及高对比度/减少动态效果支持。这是网页视觉适配，并非 Apple 原生 Liquid Glass 组件。
+顶部导航、时间轴和地图工具采用根据控件尺寸生成的圆角玻璃折射、边缘高光和暗色衬底。Chromium 使用 SVG 位移滤镜；其他浏览器使用半透明模糊材质。开启增强对比度或减少透明度后自动切为实色。实现参考 [archisvaze/liquid-glass](https://github.com/archisvaze/liquid-glass) 和 [apple-design](https://github.com/tzzs/apple-design-skill)。液态玻璃参考项目的 MIT 许可附于 `system/public/vendor/liquid-glass/LICENSE`。
 
-顶部“专注地图”可隐藏侧栏，点击“显示面板”或导航可恢复。原三维模型、风险色标、播放及重置功能保持不变。
+顶部「专注地图」可隐藏侧栏，「显示面板」可恢复。

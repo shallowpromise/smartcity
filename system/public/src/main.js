@@ -6,6 +6,7 @@ import { createWater } from './water.js';
 import { createRain } from './rain.js';
 import { createSensors } from './markers.js';
 import { ui } from './ui.js';
+import { mountGlass } from './glass.js';
 import { createRouteView } from './routes.js';
 import { installTimeline } from './timeline.js';
 
@@ -120,12 +121,16 @@ async function boot() {
     controls.target.set(-260, 20, 60);
     controls.update();
 
+    mountGlass();
     progress(100, '数字孪生底座就绪');
     setTimeout(() => {
       document.getElementById('loader').classList.add('done');
       setTimeout(() => {
         document.getElementById('loader').style.display = 'none';
         app.togglePlay(false);
+        if (new URLSearchParams(location.search).get('view') === 'routes') {
+          ui.setView('routes').then(() => app.routeView.showExample());
+        }
       }, 700);
     }, 450);
 

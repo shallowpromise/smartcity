@@ -174,6 +174,7 @@ export const ui = {
       const focused = document.body.classList.toggle('map-focused');
       $('btn-focus').setAttribute('aria-pressed', String(focused));
       $('btn-focus').textContent = focused ? '显示面板' : '专注地图';
+      this.app.routeView?.locate();
     };
     // 事件
     this.dom.play.onclick = () => this.app.togglePlay();
@@ -423,13 +424,14 @@ export const ui = {
     $('btn-focus').setAttribute('aria-pressed', 'false');
     $('btn-focus').textContent = '专注地图';
     document.body.dataset.view = view;
-    this.app.routeView.show(view === 'routes');
+    const ready = this.app.routeView.show(view === 'routes');
     document.querySelectorAll('.nav-item').forEach(b => {
       b.classList.toggle('active', b.dataset.view === view);
       b.setAttribute('aria-pressed', String(b.dataset.view === view));
     });
     const target = { monitor: this.dom.alerts, simulate: this.dom.tabs, dispatch: this.dom.dispatch }[view];
     target?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    return ready;
   },
 
   setLoading(loading, message = '', error = false) {
