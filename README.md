@@ -51,6 +51,8 @@ node --test system/tests/*.test.mjs
 
 ## 界面设计
 
-三维底图采用日间建筑材质与浅绿公园配色。导航、侧栏、情景卡、指标和点位详情使用浅色半透明玻璃，动态告警行和处置建议共享柔和的折射轮廓。Chromium 使用 SVG 位移滤镜；其他浏览器使用半透明模糊材质。开启增强对比度或减少透明度后自动切为实色。实现参考 [archisvaze/liquid-glass](https://github.com/archisvaze/liquid-glass) 和 [apple-design](https://github.com/tzzs/apple-design-skill)。液态玻璃参考项目的 MIT 许可附于 `system/public/vendor/liquid-glass/LICENSE`。
+导航和情景选择各共享一枚随选项移动的玻璃胶囊。桌面按钮的高光跟随指针，触屏按钮在按下时轻微收缩。侧栏、工具条和时间轴各自对背后的地图做一次光学处理，内部指标和告警共享该背景。网页设计参考 [ECC 的 Liquid Glass 指南](https://github.com/affaan-m/ECC/blob/main/docs/zh-CN/skills/liquid-glass-design/SKILL.md)。
+
+Chromium 使用 SVG 边缘折射，支持背景模糊的其他浏览器使用 CSS 材质。增强对比度或减少透明度时显示实色面板，减少动态效果时关闭胶囊滑动和跟随高光。原边缘折射参考 [archisvaze/liquid-glass](https://github.com/archisvaze/liquid-glass)，许可见 `system/public/vendor/liquid-glass/LICENSE`。[改版前的完整备份](https://github.com/shallowpromise/smartcity/tree/before-ecc-liquid-glass)
 
 顶部「专注地图」可隐藏侧栏，「显示面板」可恢复。

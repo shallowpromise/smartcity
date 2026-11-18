@@ -36,12 +36,12 @@
       </div>
     </div>
 
-    <nav class="main-nav">
-      <button class="nav-item active" data-view="overview"><i></i>态势总览</button>
-      <button class="nav-item" data-view="monitor"><i></i>监测预警</button>
-      <button class="nav-item" data-view="simulate"><i></i>推演研判</button>
-      <button class="nav-item" data-view="dispatch"><i></i>联动处置</button>
-      <button class="nav-item" data-view="routes"><i></i>积水绕行</button>
+    <nav class="main-nav" data-glass-group aria-label="主导航">
+      <button class="nav-item active" data-view="overview" aria-pressed="true"><i></i>态势总览</button>
+      <button class="nav-item" data-view="monitor" aria-pressed="false"><i></i>监测预警</button>
+      <button class="nav-item" data-view="simulate" aria-pressed="false"><i></i>推演研判</button>
+      <button class="nav-item" data-view="dispatch" aria-pressed="false"><i></i>联动处置</button>
+      <button class="nav-item" data-view="routes" aria-pressed="false"><i></i>积水绕行</button>
     </nav>
 
     <div class="top-right">
@@ -64,7 +64,7 @@
       <div><h2>暴雨内涝情景推演</h2></div>
     </div>
 
-    <div class="scenario-tabs" id="scenario-tabs" aria-label="选择推演情景"></div>
+    <div class="scenario-tabs" data-glass-group role="group" id="scenario-tabs" aria-label="选择推演情景"></div>
     <div id="scenario-status" role="status" hidden></div>
 
     <div class="scenario-card">

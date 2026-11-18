@@ -38,25 +38,92 @@ function glassFilter(defs, id, blur, strength) {
   return map;
 }
 
+// One selected lens moves inside each group, including keyboard and programmatic changes.
+export function syncGlassSelection(group) {
+  const button = group.querySelector('button.active');
+  if (!button?.offsetWidth) return;
+  group.style.setProperty('--lens-x', `${button.offsetLeft}px`);
+  group.style.setProperty('--lens-y', `${button.offsetTop}px`);
+  group.style.setProperty('--lens-width', `${button.offsetWidth}px`);
+  group.style.setProperty('--lens-height', `${button.offsetHeight}px`);
+  group.classList.add('has-lens');
+}
+
+function mountControlFeedback() {
+  const finePointer = matchMedia('(any-hover: hover) and (any-pointer: fine)');
+  const reduced = matchMedia('(prefers-reduced-motion: reduce), (prefers-reduced-transparency: reduce), (prefers-contrast: more), (forced-colors: active)');
+  let button = null, frame = 0, x = 0, y = 0;
+  function clear() {
+    button?.classList.remove('glass-lit');
+    button = null;
+    cancelAnimationFrame(frame);
+    frame = 0;
+  }
+  document.addEventListener('pointermove', event => {
+    if (event.pointerType === 'touch' || !finePointer.matches || reduced.matches) return;
+    const next = event.target.closest('button:enabled');
+    if (button !== next) clear();
+    if (!next) return;
+    button = next;
+    x = event.clientX;
+    y = event.clientY;
+    if (frame) return;
+    frame = requestAnimationFrame(() => {
+      frame = 0;
+      const rect = button.getBoundingClientRect();
+      button.style.setProperty('--light-x', `${x - rect.left}px`);
+      button.style.setProperty('--light-y', `${y - rect.top}px`);
+      button.classList.add('glass-lit');
+    });
+  }, {passive: true});
+  document.addEventListener('pointerout', event => {
+    if (button && !button.contains(event.relatedTarget)) clear();
+  });
+  window.addEventListener('blur', clear);
+  reduced.addEventListener('change', clear);
+  finePointer.addEventListener('change', clear);
+
+  // On touch screens :active may be delayed until the browser recognizes a tap.
+  let pressed = null;
+  function release() {
+    pressed?.classList.remove('glass-pressed');
+    pressed = null;
+  }
+  document.addEventListener('pointerdown', event => {
+    if (event.pointerType !== 'touch' || !event.isPrimary) return;
+    release();
+    pressed = event.target.closest('button:enabled');
+    pressed?.classList.add('glass-pressed');
+  }, {passive: true});
+  for (const type of ['pointerup', 'pointercancel']) {
+    document.addEventListener(type, event => { if (event.isPrimary) release(); });
+  }
+  window.addEventListener('blur', release);
+}
+
 export function mountGlass() {
+  const groups = document.querySelectorAll('[data-glass-group]');
+  const layout = new ResizeObserver(() => groups.forEach(syncGlassSelection));
+  for (const group of groups) {
+    layout.observe(group);
+    group.querySelectorAll('button').forEach(button => layout.observe(button));
+    syncGlassSelection(group);
+  }
+  mountControlFeedback();
   const reduce=matchMedia('(prefers-reduced-transparency:reduce), (prefers-contrast:more), (forced-colors:active)');
   if (!/Chrom(e|ium)\//.test(navigator.userAgent) || !CSS.supports('backdrop-filter','url(#lens)')) return;
   const root=svg('svg',{width:0,height:0,'aria-hidden':'true'});
   root.style.position='absolute';
   const defs=svg('defs',{}); root.append(defs); document.body.prepend(root);
 
-  // Alert and dispatch rows are recreated on each frame. They share one stretchable
-  // optical profile, so playback never creates a new filter or observation per row.
-  const row=glassFilter(defs,'card-glass',2.2,7);
-  const surfaces=document.querySelectorAll('.topbar,.map-tools,.view-presets,.timeline,.panel,.modal-card,.scenario-card,.stat,.mc-advice');
+  // Siblings share the optical surface behind them. Updating a row never allocates a filter.
+  const surfaces=document.querySelectorAll('.topbar,.map-tools,.view-presets,.timeline,.panel,.modal-card');
   const lenses=Array.from(surfaces,(el,i)=>{
     const id='surface-glass-'+i;
     const wide=el.matches('.panel,.modal-card');
-    return {el,map:glassFilter(defs,id,wide ? 8 : 3.2,wide ? 12 : 8),id,size:''};
+    return {el,map:glassFilter(defs,id,wide ? 7 : 3.5,wide ? 18 : 14),id,size:''};
   });
   const refresh=()=>{
-    if (!reduce.matches && !row.hasAttribute('href')) row.setAttribute('href',displacement(270,68,17));
-    document.documentElement.style.setProperty('--row-optics',reduce.matches ? 'none' : 'url(#card-glass)');
     for (const lens of lenses) {
       const {el,map,id}=lens;
       if (reduce.matches) { el.style.removeProperty('--glass-optics'); continue; }

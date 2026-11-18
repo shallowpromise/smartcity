@@ -1,3 +1,4 @@
+import { syncGlassSelection } from './glass.js';
 import { wetGridStats, levelOf, riskThresholds, levelColor, fmtClock, fmtT, num, clamp } from './utils.js';
 
 const $ = (id) => document.getElementById(id);
@@ -257,7 +258,12 @@ export const ui = {
   setScenario(scn) {
     this.scn = scn;
     this.idx = 0;
-    this.dom.tabs.querySelectorAll('button').forEach((b) => b.classList.toggle('active', b.dataset.id === scn.id));
+    this.dom.tabs.querySelectorAll('button').forEach(button => {
+      const selected = button.dataset.id === scn.id;
+      button.classList.toggle('active', selected);
+      button.setAttribute('aria-pressed', String(selected));
+    });
+    syncGlassSelection(this.dom.tabs);
     this.dom.name.textContent = scn.name;
     this.dom.desc.textContent = scn.desc;
     this.dom.tag.textContent = scn.tag;
@@ -431,6 +437,7 @@ export const ui = {
       b.classList.toggle('active', b.dataset.view === view);
       b.setAttribute('aria-pressed', String(b.dataset.view === view));
     });
+    syncGlassSelection(document.querySelector('.main-nav'));
     const target = { monitor: this.dom.alerts, simulate: this.dom.tabs, dispatch: this.dom.dispatch }[view];
     target?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     return ready;
