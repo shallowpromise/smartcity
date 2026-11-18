@@ -24,6 +24,21 @@ try{
     Math.abs(transform.m42-active.offsetTop)<1 && Math.abs(parseFloat(lens.width)-active.offsetWidth)<1;
   }, selector);
  }
+ async function checkLayerButtons() {
+  const sizes=await page.locator('.map-tools .tool').evaluateAll(buttons=>buttons.map(button=>{
+   const {width,height}=button.getBoundingClientRect(),radius=getComputedStyle(button).borderTopLeftRadius;
+   return {width,height,corner:parseFloat(radius)/(radius.endsWith('%')?100:width)};
+  }));
+  assert.equal(sizes.length,6);
+  for(const {width,height,corner} of sizes) assert.ok(width>=44 && height===width && corner>=.20 && corner<.5);
+ }
+ await checkLayerButtons();
+ const water=page.locator('.map-tools [data-layer="water"]');
+ await water.focus();await page.keyboard.press('Enter');
+ assert.equal(await water.getAttribute('aria-pressed'),'false');
+ await checkLayerButtons();
+ await page.keyboard.press('Enter');
+ assert.equal(await water.getAttribute('aria-pressed'),'true');
  await checkLens('.main-nav');
  await page.locator('[data-view="simulate"]').focus();
  await page.keyboard.press('Enter');
@@ -54,6 +69,7 @@ try{
  await page.locator('#btn-focus').click();assert.equal(await page.locator('.panel-right').isVisible(),false);
  await page.setViewportSize({width:390,height:844});
  await page.locator('[data-view=simulate]').click();
+ await checkLayerButtons();
  await checkLens('.main-nav');await checkLens('.scenario-tabs');
  const side=await page.locator('.panel-left').boundingBox();
  const presets=await page.locator('.view-presets').boundingBox();

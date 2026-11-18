@@ -9,6 +9,10 @@
   --rim:inset 0 1px 2px #fffffff2,inset 1px 0 3px #ffffff87,inset 0 -2px 3px #549ac64d;
   --sheet:linear-gradient(148deg,#ffffffa6,#f6fbff52 55%,#d5eafa70);
   --button-glass:linear-gradient(152deg,#ffffffe0,#e2f2fc91 72%,#b5d9eb80);
+  --icon-corner:26%;
+}
+@supports (corner-shape:squircle) {
+  :root {--icon-corner:42%;}
 }
 .atmosphere {background:linear-gradient(170deg,rgba(223,236,248,.09),transparent 50%);}
 .topbar,.timeline,.map-tools,.view-presets,.panel,.modal-card {
@@ -20,9 +24,11 @@
 }
 .topbar,.timeline {border-radius:34px;}
 .panel,.modal-card {border-radius:28px;background-color:var(--surface);scrollbar-color:#88a5b6 transparent;}
-.map-tools,.view-presets {border-radius:28px;}
-.map-tools {top:0;bottom:0;height:max-content;margin-block:auto;transform:none;}
-.map-tools .tool span {font-size:10px;}
+.view-presets {border-radius:28px;}
+.map-tools {top:0;bottom:0;height:max-content;margin-block:auto;transform:none;border-radius:18px;padding:5px;gap:4px;}
+.map-tools .tool {width:44px;height:44px;display:flex;align-items:center;justify-content:center;gap:3px;}
+.map-tools .tool svg {width:17px;height:17px;}
+.map-tools .tool span {font-size:10px;line-height:12px;}
 body[data-view=simulate] .panel-left {border-color:#f7fdffa6;}
 .scenario-card,.stat,.alert-item,.alert-empty,.dispatch-item,.mc-advice,.mc-grid>div,.mc-chart,.route-panel dl {
   position:relative;border:0;border-radius:18px;background:var(--sheet);
@@ -44,7 +50,7 @@ body[data-view=simulate] .panel-left {border-color:#f7fdffa6;}
   box-shadow:inset 0 1px 3px #395e7e26,0 1px 1px #ffffffad;
 }
 .scenario-tabs {border-radius:23px;}
-.main-nav .nav-item,.scenario-tabs button,.map-tools .tool,.view-presets button {border-radius:999px;}
+.main-nav .nav-item,.view-presets button {border-radius:999px;}
 .scenario-tabs button {border-radius:19px;}
 [data-glass-group] button {position:relative;z-index:1;}
 .main-nav .nav-item.active,.scenario-tabs button.active {
@@ -71,11 +77,13 @@ body[data-view=simulate] .panel-left {border-color:#f7fdffa6;}
 .rain-peak {color:#225071;background:#f6fbffdc;border-radius:6px;}
 
 .ctrl,.speed,.text-tool,.tool,#btn-focus,#btn-demo-reset,.mc-actions button.ghost,.modal-close {
-  border:0;border-radius:999px;color:var(--text-2);background:var(--button-glass);
+  border:0;color:var(--text-2);background:var(--button-glass);
   box-shadow:inset 0 1px 1px #ffffffe0,inset 0 -1px 2px #4c85a73b,0 1px 3px #1f47641a;
 }
+.text-tool,#btn-focus,.mc-actions button {border-radius:999px;}
+.tool,.map-tools .tool,.ctrl,.speed,.modal-close {border-radius:var(--icon-corner);corner-shape:squircle;}
 .ctrl.primary,#btn-peak,.mc-actions button:not(.ghost),#route-example {
-  border-radius:999px;color:white;background:linear-gradient(160deg,#277fc7,#095c9e 64%,#13466f);
+  color:white;background:linear-gradient(160deg,#277fc7,#095c9e 64%,#13466f);
   box-shadow:inset 0 1px 2px #c8f5ffb3,inset 0 -2px 3px #003f7980,0 2px 7px #23547c38;
 }
 #btn-focus[aria-pressed=true],.map-tools .tool.active {color:#094d7d;background:var(--button-glass);}
@@ -84,7 +92,7 @@ body[data-view=simulate] .panel-left {border-color:#f7fdffa6;}
 :where(button) {position:relative;}
 @media (any-hover:hover) and (any-pointer:fine) {
   #app button.glass-lit::after {
-    content:"";display:block;position:absolute;inset:0;width:auto;height:auto;border:0;border-radius:inherit;pointer-events:none;
+    content:"";display:block;position:absolute;inset:0;width:auto;height:auto;border:0;border-radius:inherit;corner-shape:inherit;pointer-events:none;
     mask-image:linear-gradient(#000 0%,#0005 55%,#000a);
     background:radial-gradient(ellipse 64px 36px at var(--light-x) var(--light-y),#fff6,transparent 82%);
   }
