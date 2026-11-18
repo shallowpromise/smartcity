@@ -1,4 +1,5 @@
 ﻿import * as THREE from 'three';
+import { DAY_FOG, FOG_DENSITY } from './scene.js';
 
 /* 积水水面：随地形起伏的网格 + 深度着色 + 雨滴涟漪 + 菲涅尔 */
 export function createWater(terrain, meta) {
@@ -39,8 +40,8 @@ export function createWater(terrain, meta) {
     uniforms: {
       uTime: { value: 0 },
       uOpacity: { value: 0.95 },
-      uFogColor: { value: new THREE.Color(0x081421) },
-      uFogDensity: { value: 0.000135 },
+      uFogColor: { value: new THREE.Color(DAY_FOG) },
+      uFogDensity: { value: FOG_DENSITY },
       uSun: { value: new THREE.Vector3(-0.55, 0.42, 0.72).normalize() },
     },
     vertexShader: /* glsl */`

@@ -28,24 +28,35 @@ function displacement(w,h,radius) {
   return canvas.toDataURL();
 }
 
+function glassFilter(defs, id, blur, strength) {
+  const filter=svg('filter',{id,x:0,y:0,width:'100%',height:'100%','color-interpolation-filters':'sRGB'});
+  const map=svg('feImage',{result:'bezel',width:'100%',height:'100%',preserveAspectRatio:'none'});
+  filter.append(svg('feGaussianBlur',{in:'SourceGraphic',stdDeviation:blur,result:'soft'}),map,
+    svg('feDisplacementMap',{in:'soft',in2:'bezel',scale:strength,xChannelSelector:'R',yChannelSelector:'G'}),
+    svg('feColorMatrix',{type:'saturate',values:'1.12'}));
+  defs.append(filter);
+  return map;
+}
+
 export function mountGlass() {
-  const surfaces=[...document.querySelectorAll('.topbar,.map-tools,.view-presets,.timeline')];
   const reduce=matchMedia('(prefers-reduced-transparency:reduce), (prefers-contrast:more), (forced-colors:active)');
   if (!/Chrom(e|ium)\//.test(navigator.userAgent) || !CSS.supports('backdrop-filter','url(#lens)')) return;
   const root=svg('svg',{width:0,height:0,'aria-hidden':'true'});
   root.style.position='absolute';
   const defs=svg('defs',{}); root.append(defs); document.body.prepend(root);
-  const lenses=surfaces.map((el,i)=>{
-    const id='control-glass-'+i;
-    const filter=svg('filter',{id,x:0,y:0,width:'100%',height:'100%','color-interpolation-filters':'sRGB'});
-    const map=svg('feImage',{result:'bezel',preserveAspectRatio:'none'});
-    filter.append(svg('feGaussianBlur',{in:'SourceGraphic',stdDeviation:'1.2',result:'soft'}),map,
-      svg('feDisplacementMap',{in:'soft',in2:'bezel',scale:18,xChannelSelector:'R',yChannelSelector:'G'}),
-      svg('feColorMatrix',{type:'saturate',values:'1.22'}));
-    defs.append(filter);
-    return {el,map,id,size:''};
+
+  // Alert and dispatch rows are recreated on each frame. They share one stretchable
+  // optical profile, so playback never creates a new filter or observation per row.
+  const row=glassFilter(defs,'card-glass',2.2,7);
+  const surfaces=document.querySelectorAll('.topbar,.map-tools,.view-presets,.timeline,.panel,.modal-card,.scenario-card,.stat,.mc-advice');
+  const lenses=Array.from(surfaces,(el,i)=>{
+    const id='surface-glass-'+i;
+    const wide=el.matches('.panel,.modal-card');
+    return {el,map:glassFilter(defs,id,wide ? 8 : 3.2,wide ? 12 : 8),id,size:''};
   });
   const refresh=()=>{
+    if (!reduce.matches && !row.hasAttribute('href')) row.setAttribute('href',displacement(270,68,17));
+    document.documentElement.style.setProperty('--row-optics',reduce.matches ? 'none' : 'url(#card-glass)');
     for (const lens of lenses) {
       const {el,map,id}=lens;
       if (reduce.matches) { el.style.removeProperty('--glass-optics'); continue; }
@@ -53,9 +64,8 @@ export function mountGlass() {
       if (!w || !h) continue;
       const r=Math.min(parseFloat(getComputedStyle(el).borderTopLeftRadius)||12,w/2,h/2);
       if (lens.size!==[w,h,r].join()) {
-        map.setAttribute('width',w);
-        map.setAttribute('height',h);
-        map.setAttribute('href',displacement(w,h,r));
+        // Half-resolution profiles suffice for a low-frequency curved edge.
+        map.setAttribute('href',displacement(Math.ceil(w/2),Math.ceil(h/2),r/2));
         lens.size=[w,h,r].join();
       }
       el.style.setProperty('--glass-optics','url(#'+id+')');

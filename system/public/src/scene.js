@@ -2,12 +2,14 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 export const SUN_DIR = new THREE.Vector3(-0.55, 0.42, 0.72).normalize();
+
+export const DAY_FOG = 0xb8cfdb;
+export const FOG_DENSITY = 0.000085;
 
 export function createScene(container) {
   const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance', alpha: false });
@@ -19,8 +21,8 @@ export function createScene(container) {
   container.appendChild(renderer.domElement);
 
   const scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x081421, 0.000135);
-  scene.background = new THREE.Color(0x040a12);
+  scene.fog = new THREE.FogExp2(DAY_FOG, FOG_DENSITY);
+  scene.background = new THREE.Color(DAY_FOG);
 
   const camera = new THREE.PerspectiveCamera(43, innerWidth / innerHeight, 1, 40000);
   camera.position.set(0, 1250, 1450);
@@ -38,12 +40,12 @@ export function createScene(container) {
   controls.enablePan = true;
   controls.addEventListener('start', () => cancelAnimationFrame(controls._flight));
 
-  scene.add(new THREE.HemisphereLight(0x9fcfff, 0x07111f, 1.15));
-  scene.add(new THREE.AmbientLight(0x2b5b86, 0.5));
-  const sun = new THREE.DirectionalLight(0xffd9b0, 2.1);
+  scene.add(new THREE.HemisphereLight(0xe6f3ff, 0xa5baa8, 1.25));
+  scene.add(new THREE.AmbientLight(0xdfe7ee, 0.45));
+  const sun = new THREE.DirectionalLight(0xfff2da, 1.8);
   sun.position.copy(SUN_DIR).multiplyScalar(5000);
   scene.add(sun);
-  const rim = new THREE.DirectionalLight(0x4fc6ff, 0.65);
+  const rim = new THREE.DirectionalLight(0xcbe1f5, 0.35);
   rim.position.set(2600, 1200, -2800);
   scene.add(rim);
 
@@ -51,10 +53,10 @@ export function createScene(container) {
   const skyMat = new THREE.ShaderMaterial({
     side: THREE.BackSide, depthWrite: false,
     uniforms: {
-      uTop: { value: new THREE.Color(0x02060e) },
-      uMid: { value: new THREE.Color(0x08203a) },
-      uHorizon: { value: new THREE.Color(0x2a4b63) },
-      uSun: { value: new THREE.Color(0xffb877) },
+      uTop: { value: new THREE.Color(0x9fc6e2) },
+      uMid: { value: new THREE.Color(0xc9dce9) },
+      uHorizon: { value: new THREE.Color(0xe5e9ea) },
+      uSun: { value: new THREE.Color(0xfff2dd) },
       uSunDir: { value: SUN_DIR.clone() },
     },
     vertexShader: /* glsl */`
@@ -84,26 +86,14 @@ export function createScene(container) {
   // 远景地面，遮住地形边缘
   const ground = new THREE.Mesh(
     new THREE.PlaneGeometry(60000, 60000),
-    new THREE.MeshBasicMaterial({ color: 0x050d16, fog: true })
+    new THREE.MeshBasicMaterial({ color: 0xb8c9cd, fog: true })
   );
   ground.rotation.x = -Math.PI / 2;
   ground.position.y = -12;
   scene.add(ground);
 
-  // 星空
-  const starGeo = new THREE.BufferGeometry();
-  const starPos = [];
-  for (let i = 0; i < 700; i++) {
-    const r = 14000, th = Math.random() * Math.PI * 2, ph = Math.acos(Math.random() * 0.75 + 0.1);
-    starPos.push(r * Math.sin(ph) * Math.cos(th), r * Math.cos(ph) * 0.75 + 1200, r * Math.sin(ph) * Math.sin(th));
-  }
-  starGeo.setAttribute('position', new THREE.Float32BufferAttribute(starPos, 3));
-  scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0x9dc8e8, size: 1.6, sizeAttenuation: true, transparent: true, opacity: 0.55, depthWrite: false })));
-
   const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
-  const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.52, 0.72, 0.78);
-  composer.addPass(bloom);
   const fxaa = new ShaderPass(FXAAShader);
   fxaa.material.uniforms['resolution'].value.set(1 / (innerWidth * renderer.getPixelRatio()), 1 / (innerHeight * renderer.getPixelRatio()));
   composer.addPass(fxaa);
@@ -119,7 +109,7 @@ export function createScene(container) {
   }
   addEventListener('resize', resize);
 
-  return { renderer, scene, camera, controls, composer, sky, sun, bloom, resize };
+  return { renderer, scene, camera, controls, composer, sky, sun, resize };
 }
 
 /* 相机飞行动画 */

@@ -41,8 +41,8 @@ function drawRain(canvas, rain, curMin, totalMin) {
     const x = i * bw;
     const t = v / max;
     const g = ctx.createLinearGradient(0, h - padB - bh, 0, h - padB);
-    g.addColorStop(0, t > 0.55 ? 'rgba(126,230,255,.95)' : 'rgba(77,163,255,.75)');
-    g.addColorStop(1, 'rgba(77,163,255,.10)');
+    g.addColorStop(0, t > 0.55 ? 'rgba(43,138,186,.86)' : 'rgba(61,133,190,.78)');
+    g.addColorStop(1, 'rgba(71,145,195,.14)');
     ctx.fillStyle = g;
     ctx.fillRect(x, h - padB - bh, Math.max(0.6, bw * 0.7), bh);
   }
@@ -53,16 +53,16 @@ function drawRain(canvas, rain, curMin, totalMin) {
     const y = h - padB - (rain[i] / max) * usable;
     i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
   }
-  ctx.strokeStyle = 'rgba(142,230,255,.55)';
+  ctx.strokeStyle = 'rgba(24,108,161,.9)';
   ctx.lineWidth = 1;
   ctx.stroke();
   // 当前时刻
   if (curMin != null && totalMin) {
     const x = (curMin / totalMin) * w;
-    ctx.strokeStyle = 'rgba(255,255,255,.75)';
+    ctx.strokeStyle = 'rgba(31,66,90,.8)';
     ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(x, 2); ctx.lineTo(x, h - padB + 2); ctx.stroke();
-    ctx.fillStyle = '#fff';
+    ctx.fillStyle = '#174c72';
     ctx.beginPath(); ctx.arc(x, 2, 2.2, 0, 7); ctx.fill();
   }
   ctx.strokeStyle = 'rgba(120,170,210,.18)';
@@ -77,8 +77,8 @@ function drawTimeline(canvas, rainFrames, curIdx) {
   const step = w / (n - 1);
   // 面积
   const g = ctx.createLinearGradient(0, 0, 0, h);
-  g.addColorStop(0, 'rgba(95,215,255,.28)');
-  g.addColorStop(1, 'rgba(95,215,255,0)');
+  g.addColorStop(0, 'rgba(45,128,188,.32)');
+  g.addColorStop(1, 'rgba(45,128,188,0)');
   ctx.beginPath();
   ctx.moveTo(0, h);
   for (let i = 0; i < n; i++) ctx.lineTo(i * step, h - (rainFrames[i] / max) * (h - 4) - 2);
@@ -89,14 +89,14 @@ function drawTimeline(canvas, rainFrames, curIdx) {
     const y = h - (rainFrames[i] / max) * (h - 4) - 2;
     i ? ctx.lineTo(i * step, y) : ctx.moveTo(i * step, y);
   }
-  ctx.strokeStyle = 'rgba(142,230,255,.55)'; ctx.lineWidth = 1; ctx.stroke();
+  ctx.strokeStyle = 'rgba(24,108,161,.9)'; ctx.lineWidth = 1; ctx.stroke();
   // 已播放区域
   const x = curIdx * step;
-  ctx.fillStyle = 'rgba(95,215,255,.06)';
+  ctx.fillStyle = 'rgba(45,128,188,.07)';
   ctx.fillRect(0, 0, x, h);
-  ctx.strokeStyle = 'rgba(255,255,255,.85)';
+  ctx.strokeStyle = 'rgba(31,66,90,.84)';
   ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
-  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x, 3, 2.4, 0, 7); ctx.fill();
+  ctx.fillStyle = '#174c72'; ctx.beginPath(); ctx.arc(x, 3, 2.4, 0, 7); ctx.fill();
 }
 
 function drawSensor(canvas, series, thr, curIdx) {
@@ -109,32 +109,32 @@ function drawSensor(canvas, series, thr, curIdx) {
   thr.forEach((t, i) => {
     const y = h - (t / max) * (h - 10) - 5;
     ctx.setLineDash([3, 4]);
-    ctx.strokeStyle = ['rgba(255,209,102,.4)', 'rgba(255,159,67,.4)', 'rgba(255,77,94,.4)'][i];
+    ctx.strokeStyle = ['rgba(168,123,15,.68)', 'rgba(186,94,18,.68)', 'rgba(183,54,72,.68)'][i];
     ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
     ctx.setLineDash([]);
   });
   // 面积
   const g = ctx.createLinearGradient(0, 0, 0, h);
-  g.addColorStop(0, 'rgba(95,215,255,.36)');
-  g.addColorStop(1, 'rgba(95,215,255,0)');
+  g.addColorStop(0, 'rgba(45,128,188,.36)');
+  g.addColorStop(1, 'rgba(45,128,188,0)');
   ctx.beginPath(); ctx.moveTo(0, h);
   for (let i = 0; i < n; i++) ctx.lineTo(i * step, h - (series[i] / max) * (h - 10) - 5);
   ctx.lineTo(w, h); ctx.closePath(); ctx.fillStyle = g; ctx.fill();
   ctx.beginPath();
   for (let i = 0; i < n; i++) ctx.lineTo(i * step, h - (series[i] / max) * (h - 10) - 5);
-  ctx.strokeStyle = '#7ee6ff'; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.strokeStyle = '#136d9f'; ctx.lineWidth = 1.5; ctx.stroke();
   // 当前
   const x = curIdx * step, y = h - (series[curIdx] / max) * (h - 10) - 5;
-  ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
-  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x, y, 3, 0, 7); ctx.fill();
-  ctx.fillStyle = 'rgba(140,180,210,.65)'; ctx.font = '8px Bahnschrift, sans-serif';
+  ctx.strokeStyle = 'rgba(31,66,90,.65)'; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+  ctx.fillStyle = '#174c72'; ctx.beginPath(); ctx.arc(x, y, 3, 0, 7); ctx.fill();
+  ctx.fillStyle = '#455e71'; ctx.font = '8px Bahnschrift, sans-serif';
   ctx.fillText(`${Math.round(max * 100)}cm`, 2, 9);
 }
 
 function trendArrow(d) {
-  if (d > 0.02) return `<span style="color:#ff9f43">▲ ${(d * 100).toFixed(0)}</span>`;
-  if (d < -0.02) return `<span style="color:#35d0a5">▼ ${Math.abs(d * 100).toFixed(0)}</span>`;
-  return '<span style="color:#6f8ba3">— 平稳</span>';
+  if (d > 0.02) return `<span style="color:#8e4917">▲ ${(d * 100).toFixed(0)}</span>`;
+  if (d < -0.02) return `<span style="color:#16705c">▼ ${Math.abs(d * 100).toFixed(0)}</span>`;
+  return '<span style="color:var(--muted)">— 平稳</span>';
 }
 
 function adviceFor(s, depth, lv) {
@@ -261,7 +261,7 @@ export const ui = {
     this.dom.name.textContent = scn.name;
     this.dom.desc.textContent = scn.desc;
     this.dom.tag.textContent = scn.tag;
-    this.dom.tag.style.color = scn.color;
+    this.dom.tag.style.color = `color-mix(in srgb, ${scn.color} 48%, #192b3b)`;
     this.dom.tag.style.borderColor = scn.color + '55';
     this.dom.tag.style.background = scn.color + '12';
     this.dom.rainPeak.textContent = `峰值 ${Number.isFinite(scn.maxRain) ? scn.maxRain.toFixed(0) : '暂无数据'} mm/h · 累计 ${Number.isFinite(scn.totalRain) ? scn.totalRain.toFixed(0) : '暂无数据'} mm`;
@@ -296,7 +296,7 @@ export const ui = {
     const dMax = f.maxDepth - prev.maxDepth;
     this.dom.statMaxTrend.innerHTML = dMax > 0.005 ? `▲ 较上一时刻 +${(dMax * 100).toFixed(0)}cm`
       : dMax < -0.005 ? `▼ 较上一时刻 ${(dMax * 100).toFixed(0)}cm` : '— 与上一时刻持平';
-    this.dom.statMaxTrend.style.color = dMax > 0.005 ? '#ff9f43' : dMax < -0.005 ? '#35d0a5' : '#5c7d95';
+    this.dom.statMaxTrend.style.color = dMax > 0.005 ? '#8e4917' : dMax < -0.005 ? '#16705c' : 'var(--muted)';
     // 告警
     const list = this.app.sensors.map(meta => {
       const ss = scn.sensors.find(x => x.id === meta.id);

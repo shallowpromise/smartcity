@@ -1,22 +1,90 @@
-/* Optical bevels on floating controls, a stronger tinted body behind dense readings. */
-.topbar,.timeline,.map-tools,.view-presets {
-  background:linear-gradient(135deg,#dffaff20,transparent 24%,#b7f4ff09 64%,#c5efff24),rgba(13,28,40,.62);
-  border:1px solid rgba(219,246,255,.43);
-  border-top-color:rgba(241,252,255,.77);
-  box-shadow:inset 1px 1px 2px #ffffff66,inset -1px -2px 3px #a8e3fa38,0 8px 24px #00132155;
-  -webkit-backdrop-filter:blur(12px) saturate(1.3);
-  backdrop-filter:var(--glass-optics,blur(12px) saturate(1.3));
+/* Daylight glass. Nested cards have their own curvature and a quieter optical profile. */
+:root {
+  color-scheme:light;
+  --bg:#e2eaf0; --text:#192c3b; --text-2:#344c5d; --muted:#465c6c;
+  --cyan:#075d9f; --cyan-soft:#174f77; --teal:#126b59; --amber:#855019;
+  --line:rgba(62,94,116,.12); --line-strong:rgba(62,94,116,.22);
+  --glass:rgba(246,251,255,.65); --surface:rgba(236,245,250,.58);
+  --shadow:0 6px 24px rgba(43,71,94,.11),0 2px 6px rgba(39,68,89,.045);
+  --sheet:linear-gradient(145deg,rgba(255,255,255,.72),rgba(250,253,255,.33) 58%,rgba(213,233,248,.43));
 }
-.panel,.modal-card {
-  background:linear-gradient(145deg,#d7f3ff13 0%,transparent 32%,#95d7ea09 85%),rgba(17,30,41,.89);
-  border:1px solid #daefff38;border-top-color:#e0f4ff66;
-  box-shadow:inset 0 1px 1px #e6fcff22,0 12px 36px #0013204d;
+.atmosphere {background:linear-gradient(170deg,rgba(223,236,248,.09),transparent 50%);}
+.topbar,.timeline,.map-tools,.view-presets,.panel,.modal-card {
+  background:linear-gradient(148deg,rgba(255,255,255,.44),transparent 48%,rgba(196,218,238,.14)),var(--glass);
+  border:1px solid rgba(251,254,255,.34);
+  box-shadow:var(--shadow),inset 0 1px 2px rgba(255,255,255,.45);
+  -webkit-backdrop-filter:blur(16px) saturate(1.1);
+  backdrop-filter:var(--glass-optics,blur(16px) saturate(1.1));
 }
-.main-nav .nav-item.active,.tool.active,.view-presets button:hover {
-  background:linear-gradient(155deg,#e8fbff39,#c4e8f517);
-  box-shadow:inset 0 1px 1px #ebfcff6b,inset 0 -1px 1px #e3f9ff1a;
+.topbar,.timeline {border-radius:28px;}
+.panel,.modal-card {border-radius:27px;background-color:var(--surface);scrollbar-color:#93a9b7 transparent;}
+.map-tools,.view-presets {border-radius:21px;}
+body[data-view=simulate] .panel-left {border-color:rgba(251,254,255,.34);}
+.scenario-card,.stat,.alert-item,.alert-empty,.dispatch-item,.mc-advice,.mc-grid>div,.mc-chart {
+  border:0;border-radius:17px;background:var(--sheet);
+  box-shadow:inset 0 1px 2px #ffffff80,0 2px 8px #395a710a;
+  position:relative;isolation:isolate;backdrop-filter:none;-webkit-backdrop-filter:none;
 }
-button:focus-visible,select:focus-visible {outline:2px solid #8adaff;outline-offset:2px;}
+/* Put refraction behind the text and chart cursors so small readings stay crisp. */
+:is(.scenario-card,.stat,.alert-item,.alert-empty,.dispatch-item,.mc-advice,.mc-grid>div,.mc-chart)::before {
+  content:"";display:block;position:absolute;inset:0;width:auto;height:auto;opacity:1;
+  border:0;border-radius:inherit;z-index:-1;pointer-events:none;background:transparent;
+  -webkit-backdrop-filter:blur(6px) saturate(1.08);
+  backdrop-filter:var(--row-optics,blur(6px) saturate(1.08));
+}
+:is(.scenario-card,.stat,.mc-advice)::before {backdrop-filter:var(--glass-optics,blur(7px) saturate(1.08));}
+.scenario-card {border-radius:21px;}
+.stat {background:linear-gradient(140deg,#ffffffc7,#edf6fd85);}
+.stat.accent {background:linear-gradient(140deg,#fffaf3b8,#f5f5f17a);}
+.alert-item:hover {background:linear-gradient(130deg,#fff,#edf7ffb2);}
+.main-nav,.scenario-tabs {background:#4a739612;border-radius:18px;}
+.main-nav .nav-item,.scenario-tabs button,.map-tools .tool,.view-presets button {border-radius:14px;}
+.main-nav .nav-item.active,.scenario-tabs button.active {
+  background:linear-gradient(135deg,#fffffff2,#f5faffbd);color:#10456f;
+  box-shadow:0 2px 7px #193f5c16,inset 0 1px 2px #fff9;
+}
+.scenario-tabs button.active b {color:#395468;}
+.main-nav .nav-item:hover,.scenario-tabs button:hover,.view-presets button:hover {color:var(--cyan);background-color:#ffffff75;}
+.brand-mark {color:#34749c;}
+.brand-name,.clock b,.panel-head h2,.scenario-name,.sim-time b,.stat b,.alert-item .ai-name,.dispatch-item .di-title,.mc-grid b,.loader-inner h1,.route-panel dd {color:var(--text);}
+.stat.accent b {color:var(--amber);}
+.warn-count b {color:#a12a42;}
+.alert-item .ai-depth,.mc-level,.dispatch-item .p,.st-label .st-val {color:color-mix(in srgb,var(--c) 49%,#142335);}
+.alert-item .ai-depth i,.alert-item .ai-depth span,.alert-item .ai-meta,.dispatch-item .di-meta,.alert-empty,.mc-head p,.legend-note,.route-credit {color:var(--muted);}
+.alert-empty b,.dispatch-item .di-body {color:var(--text-2);}
+.status-chip {background:#d6ebe1bb;color:#145e50;}
+.live-dot,.auto-tag {color:#40596a;background:#bacedd40;border-radius:9px;}
+.rain-peak {color:#225071;background:#f6fbffdc;border-radius:6px;}
+.ctrl,.speed,.text-tool,.tool,#btn-focus,#btn-demo-reset,.mc-actions button.ghost,.modal-close {
+  border:0;border-radius:14px;color:var(--text-2);background:#ffffff7d;
+}
+.ctrl.primary,#btn-peak,.mc-actions button:not(.ghost),#route-example {border-radius:14px;background:#0865be;color:white;}
+#btn-focus[aria-pressed=true],.map-tools .tool.active,.view-presets button:hover {color:#14537d;background:#f5fbffa3;box-shadow:0 1px 5px #385f7a12;}
+.map-tools .tool:not(.active) {color:#637786;background:transparent;}
+.tool:hover,.text-tool:hover,.ctrl:not(.primary):hover,.speed:hover {color:var(--cyan);background:#f6fcff;}
+#timeline::-webkit-slider-runnable-track {background:#76a7c780;}
+#timeline::-webkit-slider-thumb {background:#146bab;box-shadow:0 1px 4px #204f7040;}
+button:focus-visible,input:focus-visible,select:focus-visible {outline:2px solid #185f98;outline-offset:2px;}
+.scene-caption {width:max-content;max-width:calc(100% - 780px);padding:8px 13px;border-radius:17px;background:#f5faffb8;text-shadow:none;}
+.scene-caption b,.scene-caption span,.compass span,.compass-ring b,.hint {color:var(--text-2);text-shadow:none;}
+.scene-caption span {margin-top:3px;}
+.compass-ring {background:#f7fcffab;border:0;}
+.compass-ring i {background:linear-gradient(var(--cyan),#bad1dd);}
+.st-label {padding:3px 7px;background:#f6fbffe6;border-radius:9px;box-shadow:0 2px 6px #28475b1c;}
+.st-label .st-name,.st-label.sel .st-name,.land-label b,.road-label {color:#243e50;text-shadow:0 1px 2px #fff;}
+.st-label .st-val {text-shadow:none;}
+.st-label .st-dot {display:none;}
+.land-label span,.land-label {color:var(--muted);text-shadow:0 1px 2px white;}
+.toast {background:#f4f9ffed;color:var(--text);border:0;}
+.modal {background:#879aaa48;backdrop-filter:blur(5px);}
+.modal-card {background-color:#edf5fbe0;}
+.mc-chart {background-color:#f9fcff7a;}
+#loader {background:radial-gradient(ellipse at 50% 40%,#fbfdff,#e1edf6);}
+.loader-bar {background:#adcadf62;} .loader-bar i {background:#3586bd;}
+#loader-retry {color:var(--cyan);background:#fff9;border-radius:14px;border-color:var(--line);}
+body.map-focused .scene-caption {max-width:calc(100% - 150px);}
+@media(max-width:1100px) { .scene-caption {max-width:calc(100% - 460px);} }
+@media(min-width:1101px) and (max-width:1280px) { .main-nav .nav-item:nth-child(4) {display:flex;} .main-nav .nav-item {padding-inline:10px;} }
 body[data-view=routes] .panel-left,body[data-view=routes] .scene-caption,body[data-view=routes] .view-presets {display:none;}
 body[data-view=routes] .map-tools {right:16px;}
 body[data-view=routes] .compass {right:20px;}
@@ -26,30 +94,32 @@ body[data-view=routes] .compass {right:20px;}
 .route-panel .panel-head span {font-size:11px;}
 .route-panel label,.route-stop {font-size:13px;}
 .route-panel select,.route-stop button {
-  border:1px solid #d4edff40;border-radius:9px;background:#243746;color:#f4fbff;
+  border:1px solid var(--line);border-radius:9px;background:rgba(255,255,255,.62);color:var(--text);
   min-height:36px;font:inherit;padding:4px 7px;
 }
 .route-stop {display:grid;grid-template-columns:32px minmax(0,1fr) auto;align-items:center;gap:6px;margin:8px 0;}
 .route-stop label {margin:0;}
 .route-stop select {min-width:0;width:100%;text-overflow:ellipsis;}
-.route-stop button {color:#aee2ff;cursor:pointer;}
+.route-stop button {color:var(--cyan);cursor:pointer;}
 .route-key {display:inline-block;width:19px;margin-right:6px;vertical-align:middle;}
-.route-key.normal {border-top:3px dashed #ffba69;} .route-key.avoid {border-top:3px solid #48efd8;}
-.route-panel dt {color:#e8f2f8!important;}
+.route-key.normal {border-top:3px dashed #aa570a;} .route-key.avoid {border-top:3px solid #007d76;}
+.route-panel dt {color:var(--text-2)!important;}
+.route-panel dl {border:0;border-radius:18px;padding:13px 14px 1px;background:var(--sheet);
+  -webkit-backdrop-filter:blur(7px);backdrop-filter:var(--row-optics,blur(7px));}
 .route-panel dd {margin-left:25px;}
 #route-result {line-height:1.5;font-weight:600;}
 .route-pin {width:25px;line-height:21px;height:25px;box-sizing:border-box;}
 .peak-pin {width:auto;height:auto;line-height:20px;padding:0 8px;background:#6b1725;color:white;border-color:#ffafaf;border-radius:10px;white-space:nowrap;transform-origin:center;}
 body.route-picking .route-panel,body.route-picking .scene-caption {display:none!important;}
 body.route-picking #scene-wrap canvas {cursor:crosshair;}
-#pick-hint:not([hidden]) {position:absolute;z-index:19;left:50%;top:100px;transform:translateX(-50%);display:flex;align-items:center;gap:12px;border:1px solid #b8dff87a;border-radius:14px;background:#122333ef;color:white;padding:9px 12px;font-size:13px;max-width:94vw;width:max-content;}
-#pick-hint button {background:#e9f7ff1f;color:white;border:0;border-radius:8px;padding:7px;cursor:pointer;}
+#pick-hint:not([hidden]) {position:absolute;z-index:19;left:50%;top:100px;transform:translateX(-50%);display:flex;align-items:center;gap:12px;border:1px solid #b8dff87a;border-radius:14px;background:#f3f8fcf2;color:var(--text);padding:9px 12px;font-size:13px;max-width:94vw;width:max-content;}
+#pick-hint button {background:#dceaf4;color:var(--cyan);border:0;border-radius:8px;padding:7px;cursor:pointer;}
 @media(max-width:700px) {
   #pick-hint:not([hidden]) {top:130px;}
   .route-panel {max-height:min(39dvh,calc(100dvh - 284px));}
 }
 @media (prefers-contrast:more),(prefers-reduced-transparency:reduce),(forced-colors:active) {
-  .topbar,.timeline,.map-tools,.view-presets,.panel,.modal-card {background:#17232d;backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none;border-color:#94a8b6;}
+  .topbar,.timeline,.map-tools,.view-presets,.panel,.modal-card {background:#f1f5f8;backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none;border-color:#738594;}
 }
 @media(max-width:700px) {
   body[data-view=routes]:not(.map-focused) .map-tools {display:none;}
@@ -57,7 +127,7 @@ body.route-picking #scene-wrap canvas {cursor:crosshair;}
   .route-panel > * {flex-shrink:0;}
   .route-panel .panel-head {order:-4;margin-bottom:4px;}
   .route-panel #route-result {order:-3;margin:5px 0;}
-  .route-panel dl {order:-2;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;grid-auto-flow:column;gap:3px 8px;padding:8px 0;margin:5px 0;}
+  .route-panel dl {order:-2;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;grid-auto-flow:column;gap:3px 8px;padding:9px 10px;margin:5px 0;}
   .route-panel dl dd {margin:0;font-size:13px;}
   .route-panel .route-actions {order:-1;margin:5px 0;}
 }
@@ -65,4 +135,15 @@ body.route-picking #scene-wrap canvas {cursor:crosshair;}
 @media(max-width:700px) {
   body[data-view=routes]:not(.map-focused) .compass {display:none;}
   body[data-view=routes] .st-label {visibility:hidden;}
+}
+
+@media (prefers-contrast:more),(prefers-reduced-transparency:reduce),(forced-colors:active) {
+  :root {--text:#132a38;--text-2:#283e4f;--muted:#314c5e;--line:#8b9da9;}
+  .scenario-card,.stat,.stat.accent,.alert-item,.alert-empty,.dispatch-item,.mc-grid>div,.mc-advice,.mc-chart,.route-panel dl,.scene-caption,.st-label {
+    background:#fff;backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none;border:1px solid var(--line);
+  }
+  .model-note p,.legend-note,.stat em {color:var(--muted);}
+}
+@media (prefers-contrast:more),(prefers-reduced-transparency:reduce),(forced-colors:active) {
+  :is(.scenario-card,.stat,.alert-item,.alert-empty,.dispatch-item,.mc-advice,.mc-grid>div,.mc-chart)::before {display:none;backdrop-filter:none;-webkit-backdrop-filter:none;}
 }

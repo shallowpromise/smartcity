@@ -11,7 +11,7 @@ export function createRain(scene) {
     const x = (Math.random() - 0.5) * RANGE;
     const z = (Math.random() - 0.5) * RANGE;
     const y = Math.random() * HEIGHT;
-    const len = 45 + Math.random() * 90;
+    const len = 22 + Math.random() * 55;
     const speed = 900 + Math.random() * 700;
     data.push({ x, z, y, len, speed });
     pos[i * 6] = x; pos[i * 6 + 1] = y; pos[i * 6 + 2] = z;
@@ -19,8 +19,8 @@ export function createRain(scene) {
   }
   geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   const mat = new THREE.LineBasicMaterial({
-    color: 0xa8dcff, transparent: true, opacity: 0.28,
-    blending: THREE.AdditiveBlending, depthWrite: false,
+    color: 0x7197b0, transparent: true, opacity: 0.28,
+    blending: THREE.NormalBlending, depthWrite: false,
   });
   const lines = new THREE.LineSegments(geo, mat);
   lines.frustumCulled = false;
@@ -34,7 +34,7 @@ export function createRain(scene) {
     if (!enabled) { lines.visible = false; return; }
     intensity += ((rainRate > 0.3 ? Math.min(1, 0.15 + rainRate / 45) : 0) - intensity) * Math.min(1, dt * 2);
     lines.visible = intensity > 0.02;
-    mat.opacity = 0.08 + intensity * 0.30;
+    mat.opacity = 0.05 + intensity * 0.22;
     if (!lines.visible) return;
     lines.position.x = camera.position.x;
     lines.position.z = camera.position.z;

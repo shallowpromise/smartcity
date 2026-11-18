@@ -51,7 +51,7 @@ export function createRouteView(app, fetchJSON) {
     }
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.Float32BufferAttribute(vertices,3));
-    const mesh = new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color,side:THREE.DoubleSide,transparent:true,depthTest:false,depthWrite:false,toneMapped:false}));
+    const mesh = new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color,side:THREE.DoubleSide,transparent:true,depthTest:false,depthWrite:false,toneMapped:false,fog:false}));
     mesh.renderOrder = order;
     group.add(mesh);
   }
@@ -83,9 +83,9 @@ export function createRouteView(app, fetchJSON) {
     const streets = alternative && [...new Set(alternative.edges.map(i=>net.names[net.edges[i][2]]).filter(Boolean))];
     $('route-streets').textContent = streets?.length ? '途经 ' + streets.join('、') : '';
     clearLines();
-    if (baseline && baseline !== alternative) line(baseline.points,0xffba69,true);
-    if (alternative) line(alternative.points,0x48efd8,false);
-    for (const segment of result.flooded || []) line(segment,0xff4e59,false,6,13);
+    if (baseline && baseline !== alternative) line(baseline.points,0xaa570a,true);
+    if (alternative) line(alternative.points,0x007d76,false);
+    for (const segment of result.flooded || []) line(segment,0xc31f42,false,6,13);
     if (hotspot) pin(hotspot.point,'积水 ' + cm(hotspot.cm),true);
     pin(net.nodes[start].slice(1),'起');
     if (end !== start) pin(net.nodes[end].slice(1),'终');

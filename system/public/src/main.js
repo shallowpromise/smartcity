@@ -80,7 +80,7 @@ async function boot() {
     const sampleElev = terrain.userData.sampleElev;
     app.sampleElev = sampleElev;
 
-    progress(64, '挤出建筑体块与夜景窗格…');
+    progress(64, '构建建筑体块与日间立面…');
     const buildingsMesh = buildBuildings(buildings, meta, sampleElev);
     scene.add(buildingsMesh);
     app.buildings = buildingsMesh;
@@ -156,10 +156,8 @@ async function boot() {
           }
         }
       }
-      // 水面 / 雨 / 建筑窗光随时间演化
+      // 水面和雨幕随时间演化。
       if (app.water?.mesh.visible) app.water.mesh.material.uniforms.uTime.value = clock.t;
-      if (app.terrain) app.terrain.material.uniforms.uTime.value = clock.t;
-      if (app.buildings) app.buildings.material.uniforms.uTime.value = clock.t;
       const rainRate = app.scenario ? app.scenario.frames[app.idx].rain : 0;
       app.rain.update(dt, camera, rainRate, app.layers.rain);
       if (app.sensorView) app.sensorView.update(app.frameSensors || [], app.selectedId, clock.t);

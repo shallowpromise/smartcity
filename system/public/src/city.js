@@ -1,8 +1,8 @@
 ﻿import * as THREE from 'three';
 import { CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
-import { SUN_DIR } from './scene.js';
+import { SUN_DIR, DAY_FOG, FOG_DENSITY } from './scene.js';
 
-const FOG = { color: new THREE.Color(0x081421), density: 0.000135 };
+const FOG = { color: new THREE.Color(DAY_FOG), density: FOG_DENSITY };
 
 function fogChunk() {
   return /* glsl */`
@@ -21,11 +21,11 @@ export function buildTerrain(data, meta) {
   const pos = new Float32Array(nx * ny * 3);
   const col = new Float32Array(nx * ny * 3);
   const colors = {
-    0: [0.018, 0.055, 0.075],
-    1: [0.045, 0.13, 0.105],
-    2: [0.065, 0.10, 0.13],
-    3: [0.028, 0.052, 0.075],
-    4: [0.045, 0.075, 0.095],
+    0: [0.26, 0.48, 0.56],
+    1: [0.28, 0.49, 0.33],
+    2: [0.52, 0.55, 0.54],
+    3: [0.58, 0.59, 0.58],
+    4: [0.47, 0.50, 0.49],
   };
   for (let j = 0; j < ny; j++) {
     for (let i = 0; i < nx; i++) {
@@ -59,7 +59,6 @@ export function buildTerrain(data, meta) {
       uSun: { value: SUN_DIR.clone() },
       uFogColor: { value: FOG.color },
       uFogDensity: { value: FOG.density },
-      uTime: { value: 0 },
     },
     vertexShader: /* glsl */`
       varying vec3 vColor; varying vec3 vN; varying vec3 vW; varying float vY;
@@ -73,7 +72,7 @@ export function buildTerrain(data, meta) {
     fragmentShader: /* glsl */`
       ${fogChunk()}
       varying vec3 vColor; varying vec3 vN; varying vec3 vW; varying float vY;
-      uniform vec3 uSun; uniform float uTime;
+      uniform vec3 uSun;
       void main(){
         vec3 n = normalize(vN);
         float ndl = max(dot(n, normalize(uSun)), 0.0);
@@ -84,11 +83,11 @@ export function buildTerrain(data, meta) {
         float fw = max(fwidth(e), 0.0006);
         float line = abs(fract(e) - 0.5) / fw;
         float contour = (1.0 - smoothstep(0.0, 1.15, line)) * smoothstep(1.0, 4.0, vY);
-        col += vec3(0.10, 0.42, 0.55) * contour * 0.20;
+        col *= 1.0 - contour * 0.045;
         // 200m 数字网格
         vec2 g = abs(fract(vW.xz / 200.0) - 0.5) / max(fwidth(vW.xz / 200.0), vec2(0.0008));
         float grid = (1.0 - smoothstep(0.0, 1.0, min(g.x,g.y)));
-        col += vec3(0.08,0.24,0.32) * grid * 0.16;
+        col *= 1.0 - grid * 0.018;
         float rim = pow(1.0 - max(dot(n, normalize(cameraPosition - vW)),0.0), 3.0);
         col += vec3(0.06,0.20,0.28)*rim*0.25;
         float f = fogFactor(vW);
@@ -99,6 +98,7 @@ export function buildTerrain(data, meta) {
   const mesh = new THREE.Mesh(geo, mat);
   mesh.frustumCulled = false;
   mesh.name = 'terrain';
+  mesh.userData.landcover = lc;
   mesh.userData.sampleElev = makeSampler(elev, nx, ny, w, h);
   return mesh;
 }
@@ -118,7 +118,7 @@ function makeSampler(elev, nx, ny, w, h) {
 /* ------------------------------------------------------------------ 建筑 */
 export function buildBuildings(data, meta, sampleElev) {
   const W = meta.world[0], H = meta.world[1];
-  const positions = [], normals = [], colors = [], uvs = [], seeds = [], indices = [];
+  const positions = [], normals = [], colors = [], uvs = [], indices = [];
   let vi = 0;
   const tall = [];
 
@@ -144,9 +144,9 @@ export function buildBuildings(data, meta, sampleElev) {
     const y0 = ground, y1 = ground + height;
     const t = Math.min(1, height / 220);
     const seed = hash01(bi * 7.13 + 3.7);
-    let baseCol = [0.055 + t * 0.06, 0.10 + t * 0.10, 0.135 + t * 0.12];
-    baseCol = baseCol.map((v) => v * (0.82 + seed * 0.36));
-    const roofCol = [baseCol[0] * 1.15, baseCol[1] * 1.2, baseCol[2] * 1.25];
+    let baseCol = [0.52 - t * 0.12, 0.59 - t * 0.09, 0.62 + t * 0.05];
+    baseCol = baseCol.map((v) => v * (0.85 + seed * 0.28));
+    const roofCol = [baseCol[0] * 1.40, baseCol[1] * 1.28, baseCol[2] * 1.19];
 
     // 侧面
     let cum = 0;
@@ -169,7 +169,6 @@ export function buildBuildings(data, meta, sampleElev) {
         normals.push(nx, 0, nz);
         colors.push(...baseCol);
         uvs.push(q[3], q[4]);
-        seeds.push(seed);
       }
       indices.push(vi, vi + 1, vi + 2, vi, vi + 2, vi + 3);
       vi += 4;
@@ -182,7 +181,6 @@ export function buildBuildings(data, meta, sampleElev) {
       normals.push(0, 1, 0);
       colors.push(...roofCol);
       uvs.push(-1, -1);
-      seeds.push(seed);
       vi++;
     }
     const faces = THREE.ShapeUtils.triangulateShape(pts, []);
@@ -196,7 +194,6 @@ export function buildBuildings(data, meta, sampleElev) {
   geo.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
   geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
   geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-  geo.setAttribute('aSeed', new THREE.Float32BufferAttribute(seeds, 1));
   geo.setIndex(indices);
   geo.computeBoundingSphere();
 
@@ -207,44 +204,30 @@ export function buildBuildings(data, meta, sampleElev) {
       uSun: { value: SUN_DIR.clone() },
       uFogColor: { value: FOG.color },
       uFogDensity: { value: FOG.density },
-      uTime: { value: 0 },
-      uNight: { value: 1 },
     },
     vertexShader: /* glsl */`
-      attribute float aSeed;
-      varying vec3 vColor; varying vec3 vN; varying vec3 vW; varying vec2 vUv; varying float vSeed;
+      varying vec3 vColor; varying vec3 vN; varying vec3 vW; varying vec2 vUv;
       void main(){
-        vColor=color; vN=normalize(mat3(modelMatrix)*normal); vUv=uv; vSeed=aSeed;
+        vColor=color; vN=normalize(mat3(modelMatrix)*normal); vUv=uv;
         vec4 wp=modelMatrix*vec4(position,1.0); vW=wp.xyz;
         gl_Position=projectionMatrix*viewMatrix*wp;
       }`,
     fragmentShader: /* glsl */`
       ${fogChunk()}
-      varying vec3 vColor; varying vec3 vN; varying vec3 vW; varying vec2 vUv; varying float vSeed;
-      uniform vec3 uSun; uniform float uTime; uniform float uNight;
-      float hash(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }
+      varying vec3 vColor; varying vec3 vN; varying vec3 vW; varying vec2 vUv;
+      uniform vec3 uSun;
       void main(){
         vec3 n=normalize(vN);
         float ndl=max(dot(n,normalize(uSun)),0.0);
         float sky=0.5+0.5*n.y;
-        vec3 col=vColor*(0.30+0.55*ndl)+vec3(0.015,0.03,0.05)*sky;
-        float win=0.0;
+        vec3 col=vColor*(0.42+0.43*ndl+0.12*sky);
         if(vUv.x>=0.0){
-          vec2 g=vec2(vUv.x,vUv.y);
-          vec2 cell=floor(g);
-          float fx=fract(g.x), fy=fract(g.y);
-          float mask=step(0.34,fx)*step(fx,0.74)*step(0.30,fy)*step(fy,0.70);
-          float r=hash(cell+vec2(vSeed*17.0,vSeed*9.0));
-          float lit=step(0.50,r);
-          vec3 wc=mix(vec3(1.0,0.78,0.45),vec3(0.55,0.85,1.0),step(0.72,hash(cell+vSeed*3.0)));
-          win=mask*lit*(0.45+0.55*hash(cell*1.7+vSeed));
-          col+=wc*win*0.78*uNight;
-          col+=vec3(0.10,0.22,0.30)*mask*0.08;
-        } else {
-          col*=1.04;
-          col+=vec3(0.03,0.06,0.08)*step(0.7,hash(floor(vW.xz*0.5)));
+          // Fine glazing fades into the facade as the camera pulls away.
+          vec2 tile=fract(vUv);
+          float pane=step(0.20,tile.x)*step(tile.x,0.82)*step(0.22,tile.y)*step(tile.y,0.82);
+          float detail=1.0-smoothstep(0.25,1.0,max(fwidth(vUv.x),fwidth(vUv.y)));
+          col=mix(col,col*vec3(0.72,0.81,0.90),pane*detail);
         }
-        col+=vec3(0.04,0.13,0.18)*pow(1.0-max(dot(n,normalize(cameraPosition-vW)),0.0),3.0)*0.55;
         float f=fogFactor(vW);
         col=mix(col,uFogColor,f);
         gl_FragColor=vec4(col,1.0);
@@ -267,7 +250,7 @@ export function buildBuildings(data, meta, sampleElev) {
   const lgeo = new THREE.BufferGeometry();
   lgeo.setAttribute('position', new THREE.Float32BufferAttribute(lp, 3));
   const lines = new THREE.LineSegments(lgeo, new THREE.LineBasicMaterial({
-    color: 0x63c8ee, transparent: true, opacity: 0.22, blending: THREE.AdditiveBlending, depthWrite: false,
+    color: 0xd4e4ea, transparent: true, opacity: 0.14, blending: THREE.NormalBlending, depthWrite: false,
   }));
   mesh.add(lines);
   mesh.userData.tall = tall;
@@ -292,7 +275,7 @@ export function buildVectors(data, meta, sampleElev) {
     const pts = r.p;
     const w = Math.max(2.5, (r.w || 8) * 0.58);
     const c = clsColor[r.c] || [0.09, 0.18, 0.24];
-    const cc = [c[0] * 0.72, c[1] * 0.78, c[2] * 0.82];
+    const cc = [0.72 + c[0] * 0.35, 0.73 + c[1] * 0.22, 0.68 + c[2] * 0.20];
     for (let i = 0; i < pts.length - 2; i += 2) {
       const x1 = pts[i] - W / 2, z1 = pts[i + 1] - H / 2;
       const x2 = pts[i + 2] - W / 2, z2 = pts[i + 3] - H / 2;
@@ -310,7 +293,7 @@ export function buildVectors(data, meta, sampleElev) {
   rg.setAttribute('position', new THREE.Float32BufferAttribute(rp, 3));
   rg.setAttribute('color', new THREE.Float32BufferAttribute(rc, 3));
   const roads = new THREE.Mesh(rg, new THREE.MeshBasicMaterial({
-    vertexColors: true, transparent: true, opacity: 0.46, depthWrite: false,
+    vertexColors: true, transparent: true, opacity: 0.78, depthWrite: false,
     blending: THREE.NormalBlending, side: THREE.DoubleSide,
   }));
   roads.name = 'roads';
@@ -327,7 +310,7 @@ export function buildVectors(data, meta, sampleElev) {
     const y = sampleElev(x0, z0) + 0.10;
     for (let i = 2; i < pts.length - 2; i += 2) {
       gp.push(x0, y, z0, pts[i] - W / 2, y, pts[i + 1] - H / 2, pts[i + 2] - W / 2, y, pts[i + 3] - H / 2);
-      for (let k = 0; k < 3; k++) gc.push(0.035, 0.10, 0.075);
+      for (let k = 0; k < 3; k++) gc.push(0.24, 0.45, 0.28);
     }
   }
   if (gp.length) {
@@ -369,7 +352,7 @@ export function buildVectors(data, meta, sampleElev) {
     const wg = new THREE.BufferGeometry();
     wg.setAttribute('position', new THREE.Float32BufferAttribute(wp, 3));
     const water = new THREE.Mesh(wg, new THREE.MeshBasicMaterial({
-      color: 0x0a3550, transparent: true, opacity: 0.55, depthWrite: false, side: THREE.DoubleSide,
+      color: 0x6aaec1, transparent: true, opacity: 0.55, depthWrite: false, side: THREE.DoubleSide,
     }));
     water.name = 'base-water';
     water.renderOrder = 1;
@@ -382,10 +365,11 @@ export function buildVectors(data, meta, sampleElev) {
 export function buildTrees(terrain, count = 1500) {
   const elev = terrain.userData.sampleElev;
   const data = terrain.geometry.attributes.position.array;
-  const lc = terrain.geometry.attributes.color.array;
-  const geo = new THREE.ConeGeometry(7.5, 22, 5, 1);
+  const lc = terrain.userData.landcover;
+  const geo = new THREE.IcosahedronGeometry(8, 1);
+  geo.scale(1, 1.35, 1);
   geo.translate(0, 11, 0);
-  const mat = new THREE.MeshStandardMaterial({ color: 0x1d4736, roughness: 0.95, metalness: 0, flatShading: true });
+  const mat = new THREE.MeshStandardMaterial({ color: 0x7ba38a, roughness: 0.95, metalness: 0, flatShading: true });
   const inst = new THREE.InstancedMesh(geo, mat, count);
   const m = new THREE.Matrix4();
   let n = 0;
@@ -393,8 +377,7 @@ export function buildTrees(terrain, count = 1500) {
   for (let tries = 0; tries < count * 4 && n < count; tries++) {
     const i = (Math.random() * (nx * ny)) | 0;
     // 只在绿色地表上种树
-    const r = lc[i * 3], g = lc[i * 3 + 1], b = lc[i * 3 + 2];
-    if (!(g > r * 1.25 && g > b * 1.05)) continue;
+    if (lc[i] !== 1) continue;
     const x = data[i * 3], z = data[i * 3 + 2];
     const y = data[i * 3 + 1];
     const s = 0.55 + Math.random() * 1.15;
