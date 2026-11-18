@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="./src/apple-design.css" />
 <link rel="stylesheet" href="./src/liquid-glass.css" />
 <link rel="stylesheet" href="./src/analysis.css" />
+<link rel="stylesheet" href="./src/rain-navigation.css" />
 <script type="importmap">
 { "imports": { "three": "./vendor/three/three.module.js", "three/addons/": "./vendor/jsm/" } }
 </script>
@@ -43,6 +44,7 @@
       <button class="nav-item" data-view="simulate" aria-pressed="false"><i></i>推演研判</button>
       <button class="nav-item" data-view="dispatch" aria-pressed="false"><i></i>联动处置</button>
       <button class="nav-item" data-view="routes" aria-pressed="false"><i></i>积水绕行</button>
+      <button class="nav-item" data-view="rain-nav" aria-pressed="false"><i></i>避雨导航</button>
       <button class="nav-item" data-view="analysis" aria-pressed="false"><i></i>数据研判</button>
     </nav>
 
@@ -164,12 +166,46 @@
     <div class="route-actions">
       <button class="text-tool" id="route-example" disabled>查看福华一路示例</button>
       <button class="text-tool" id="route-locate" disabled>定位路线</button>
+      <button class="text-tool" id="route-shelter">查找步行避雨点</button>
     </div>
     <p class="legend-note">红色路段达到排除水深。拖动时间轴可重新计算。约 32 米地面积水模拟，部分禁转资料不完整。实际通行以现场交通管制为准。</p>
     <a class="route-credit" href="https://www.openstreetmap.org/copyright">道路数据 © OpenStreetMap contributors</a>
   </aside>
 
   <div id="pick-hint" hidden><span></span><button>取消选点</button></div>
+
+  <aside class="panel rain-nav-panel" aria-label="步行避雨导航">
+    <header class="walk-head"><h2>避雨导航</h2><span id="walk-clock"></span></header>
+    <div class="walk-location-actions">
+      <button id="walk-geo" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m20 4-6.4 16-3-6.6L4 10.5Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>使用我的位置</button>
+      <button id="walk-demo" disabled>随机模拟位置</button>
+    </div>
+    <div class="walk-position"><p id="walk-position">选择起点后，地图会标出位置并查找附近的室内避难场所。</p><button id="walk-clear" hidden>清除位置</button></div>
+    <button id="walk-example" disabled title="切换到 9·7 复盘第 4 小时，并生成模拟起点">体验积水绕行示例</button>
+    <p id="walk-notice" role="status" hidden></p>
+    <button id="walk-retry" hidden>重新载入步行路网</button>
+    <section id="walk-result" hidden>
+      <div class="walk-site">
+        <div class="walk-site-head"><span id="walk-rank"></span><span id="walk-availability"></span></div>
+        <h3 id="walk-name" aria-live="polite"></h3><p id="walk-address"></p>
+        <dl class="walk-stats"><div><dt>步道路程</dt><dd id="walk-distance"></dd></div><div><dt>沿线最高模型水深</dt><dd id="walk-peak"></dd></div></dl>
+      </div>
+      <p id="walk-compare"></p>
+      <p class="walk-key" id="walk-key"><i></i>避水步道 <span><i></i>常规路线 <i></i>超阈路段</span><b></b>场所参考点</p>
+      <div class="walk-actions"><button id="walk-fit">查看地图路线</button><label><span id="walk-count">可达场所</span><select id="walk-options" aria-label="按路程排序的候选室内场所"></select></label></div>
+      <p id="walk-access" class="walk-note"></p>
+      <details class="walk-details"><summary>分段步行指引</summary><ol id="walk-steps"></ol></details>
+    </section>
+    <div class="walk-settings">
+      <label>降雨情景<select id="walk-scenario" disabled></select></label>
+      <label>排除模型水深<select id="walk-limit" disabled><option value="5">≥ 5 cm</option><option value="10" selected>≥ 10 cm</option><option value="15">≥ 15 cm</option></select></label>
+    </div>
+    <details class="walk-details"><summary>路线与位置数据</summary>
+      <p>使用福田区 2026 年室内避难场所名录。70 处场所中，17 处在中心片区同时有位置、步道和地面积水资料。路线按可通行步道路程加两端接驳直线估距排序。</p>
+      <p>地图路线止于场所附近的地面步道。模型按所选情景和时刻排除超阈或缺测段。实际入口、开放情况与现场积水需核实。设备经纬度采用 WGS84，仅在本页面用于计算。</p>
+      <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">步道 © OpenStreetMap contributors</a>
+    </details>
+  </aside>
 
   <aside class="panel analysis-panel" aria-label="数据研判">
     <header class="analysis-head"><h2>数据研判</h2><span id="an-clock"></span><button id="an-play" aria-pressed="false">播放</button></header>

@@ -176,6 +176,7 @@ export const ui = {
       $('btn-focus').setAttribute('aria-pressed', String(focused));
       $('btn-focus').textContent = focused ? '显示面板' : '专注地图';
       this.app.routeView?.locate();
+      this.app.rainNav?.locate();
     };
     // 事件
     this.dom.play.onclick = () => this.app.togglePlay();
@@ -184,7 +185,9 @@ export const ui = {
     $('btn-peak').onclick = () => {
       this.app.togglePlay(false);
       const peak = this.scn.frames.reduce((best, f, i, frames) => f.maxDepth > frames[best].maxDepth ? i : best, 0);
-      this.app.setFrame(peak); this.app.selectedId = null; this.app.flyPreset('hotspot');
+      this.app.setFrame(peak); this.app.selectedId = null;
+      if (document.body.dataset.view === 'rain-nav') this.app.rainNav.locate();
+      else this.app.flyPreset('hotspot');
     };
     this.dom.speed.onclick = () => {
       this.speed = SPEEDS[(SPEEDS.indexOf(this.speed) + 1) % SPEEDS.length];
@@ -202,7 +205,10 @@ export const ui = {
     document.querySelectorAll('.view-presets button').forEach((b) => {
       b.onclick = () => this.app.flyPreset(b.dataset.cam);
     });
-    $('btn-cam-reset').onclick = () => this.app.flyPreset('initial');
+    $('btn-cam-reset').onclick = () => {
+      if (document.body.dataset.view === 'rain-nav' && this.app.rainNav.locate()) return;
+      this.app.flyPreset('initial');
+    };
     $('btn-full').onclick = async () => {
       try { if (!document.fullscreenElement) await document.documentElement.requestFullscreen(); else await document.exitFullscreen(); }
       catch { this.toast('当前浏览器不支持全屏，请手动最大化窗口'); }
@@ -212,6 +218,7 @@ export const ui = {
     $('mc-verify').onclick = () => { this.closeModal(); this.setView('analysis','verify'); };
     $('model-verify').onclick=()=>this.setView('analysis','verify');
     $('risk-rain').onclick=()=>this.setView('analysis','rain');
+    $('route-shelter').onclick=()=>this.setView('rain-nav');
     $('an-play').onclick=()=>this.app.togglePlay();
     $('mc-locate').onclick = () => {
       if (this.modalSensor) this.app.flySensor(this.modalSensor.id);
@@ -443,7 +450,9 @@ export const ui = {
     $('btn-focus').setAttribute('aria-pressed', 'false');
     $('btn-focus').textContent = '专注地图';
     document.body.dataset.view = view;
+    if (view !== 'rain-nav') this.app.rainNav.show(false);
     const ready = this.app.routeView.show(view === 'routes');
+    const rainReady = view === 'rain-nav' && this.app.rainNav.show(true, tab === 'demo');
     const analysisReady = this.app.analysis.show(view === 'analysis',tab);
     document.querySelectorAll('.nav-item').forEach(b => {
       b.classList.toggle('active', b.dataset.view === view);
@@ -452,7 +461,7 @@ export const ui = {
     syncGlassSelection(document.querySelector('.main-nav'));
     const target = { monitor: this.dom.alerts, simulate: this.dom.tabs, dispatch: this.dom.dispatch }[view];
     target?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    return view === 'analysis' ? analysisReady : ready;
+    return view === 'analysis' ? analysisReady : view === 'rain-nav' ? rainReady : ready;
   },
 
   setLoading(loading, message = '', error = false) {

@@ -1,5 +1,6 @@
-"""Build the directed motor-vehicle graph for the bundled Futian flood scenarios."""
+"""Build the directed motor or walking graph for the bundled Futian flood scenarios."""
 import argparse
+import base64
 from collections import defaultdict
 import json
 import math
@@ -125,11 +126,87 @@ def build(archive, controls):
     }
 
 
+def build_walk(archive, controls):
+    """Public surface walking links, retaining only true shared OSM junctions."""
+    permitted = {"yes", "permissive", "designated", "official"}
+    footways = {"footway", "pedestrian", "path", "steps", "living_street", "residential", "unclassified"}
+    arterial = {"primary", "secondary", "tertiary", "cycleway", "service"}
+    forbidden = set()
+    for entry in controls["elements"] + [e for e in archive["elements"] if e["type"] == "node"]:
+        if entry["type"] != "node":
+            continue
+        t = entry.get("tags", {})
+        access = t.get("foot", t.get("access"))
+        if (access is not None and access not in permitted) or (
+                t.get("barrier") not in (None, "bollard", "cycle_barrier", "kerb", "entrance") and access not in permitted):
+            forbidden.add(entry["id"])
+    west, south, east, north = META["bbox"]
+    # A zero stored for a building or river cell is not an observed dry footpath.
+    mask = base64.b64decode(json.loads((DATA/"official/catalog.json").read_text())["groundMask"])
+    coords, arcs, splits = {}, [], {}
+    for way in archive["elements"]:
+        t = way.get("tags", {})
+        kind = t.get("highway")
+        sidewalk = any(t.get(k) in ("yes","both","left","right") for k in ("sidewalk","sidewalk:left","sidewalk:right","sidewalk:both"))
+        signed_foot_access = sidewalk or t.get("foot") in permitted or (kind == "service" and t.get("service") == "alley")
+        if kind not in footways and not (kind in arterial and signed_foot_access):
+            continue
+        if (t.get("foot", t.get("access","yes")) not in permitted or t.get("area") == "yes"
+                or t.get("motorroad") == "yes" or t.get("sidewalk") == "separate"
+                or t.get("layer","0") != "0" or t.get("level","0") != "0"
+                or any(t.get(k,"no") != "no" for k in ("bridge","tunnel","indoor","conveying"))
+                or any(k in t for k in ("access:conditional","foot:conditional","oneway:foot:conditional","foot:forward:conditional","foot:backward:conditional"))):
+            continue
+        direction = t.get("oneway:foot","no")
+        if direction not in ("yes","1","true","no","0","false","-1"):
+            continue
+        forward = direction != "-1" and t.get("foot:forward","yes") in permitted
+        backward = direction not in ("yes","1","true") and t.get("foot:backward","yes") in permitted
+        if not (forward or backward):
+            continue
+        ids, geom = way.get("nodes",[]), way.get("geometry",[])
+        if len(ids) != len(geom):
+            continue
+        points = [(round((p["lon"]-west)/(east-west)*WIDTH,2),round((north-p["lat"])/(north-south)*HEIGHT,2)) for p in geom]
+        generic = {"crossing":"人行横道","steps":"地面台阶","sidewalk":"人行道","pedestrian":"步行街"}.get(t.get("footway",kind),"地面步道")
+        name = t.get("name:zh") or t.get("name") or generic
+        for a,b,p,q in zip(ids,ids[1:],points,points[1:]):
+            if a==b or p==q or a in forbidden or b in forbidden or any(not (0<=x<WIDTH and 0<=y<HEIGHT) for x,y in (p,q)):
+                continue
+            pieces=math.ceil(math.dist(p,q)/32)
+            previous,point=a,p
+            for step in range(1,pieces+1):
+                if step==pieces:
+                    current,next_point=b,q
+                else:
+                    key=(min(a,b),max(a,b),step if a<b else pieces-step)
+                    current=splits.setdefault(key,-len(splits)-1)
+                    next_point=tuple(round(v+(u-v)*step/pieces,2) for v,u in zip(p,q))
+                cells=sorted(grid_cells(point,next_point))
+                if all(mask[k>>3] & (1<<(k%8)) for k in cells):
+                    coords[previous],coords[current]=point,next_point
+                    if forward: arcs.append((previous,current,name,way["id"],cells))
+                    if backward: arcs.append((current,previous,name,way["id"],cells))
+                previous,point=current,next_point
+    ids=sorted(coords)
+    indexes={osm:i for i,osm in enumerate(ids)}
+    names=sorted({a[2] for a in arcs})
+    labels={name:i for i,name in enumerate(names)}
+    return dict(version=1,profile="walk",world=META["world"],grid=[NX,NY],
+                nodes=[[osm,*coords[osm]] for osm in ids],names=names,turns=[],junctions=[],
+                edges=[[indexes[a],indexes[b],labels[name],way,cells] for a,b,name,way,cells in arcs],
+                coverage={"roadSnapshot":archive.get("osm3s",{}).get("timestamp_osm_base"),"controlsDate":controls["retrieved"],
+                          "source":"© OpenStreetMap contributors","license":"ODbL 1.0"})
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("osm", type=Path)
     parser.add_argument("--controls", type=Path, default=Path(__file__).with_name("traffic-controls.json"))
+    parser.add_argument("--walking", action="store_true", help="build the separate surface pedestrian profile")
     args = parser.parse_args()
-    graph = build(json.loads(args.osm.read_text()), json.loads(args.controls.read_text()))
-    (DATA / "road-network.json").write_text(json.dumps(graph,ensure_ascii=False,separators=(",", ":")) + "\n")
+    builder = build_walk if args.walking else build
+    graph = builder(json.loads(args.osm.read_text()), json.loads(args.controls.read_text()))
+    filename = "walk-network.json" if args.walking else "road-network.json"
+    (DATA / filename).write_text(json.dumps(graph,ensure_ascii=False,separators=(",", ":")) + "\n")
     print(len(graph["nodes"]), "nodes,", len(graph["edges"]), "arcs,", len(graph["turns"]), "blocked transitions")

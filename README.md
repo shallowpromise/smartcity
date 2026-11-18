@@ -9,6 +9,7 @@
 - **街道雨量**展示福田区 10 个街道的半小时、1 小时和 3 小时官方阈值、当前余量和风险提示。可对照情景降雨或导入带时间戳的实况累计雨量。[街道阈值](https://shallowpromise.github.io/smartcity/?view=analysis&tab=rain)
 - **设施**可查询 70 条室内、55 条室外避难场所记录及模型范围内的 241 个 OSM 地铁出入口。按街道、名称、类型、登记容量筛选后可查看来源、定位依据、模型水深和超阈时长。77 条场所记录匹配到参考位置，44 条有地面网格采样，37 条可接驳地面路网。开放状态和现场入口待属地核实。[设施名录](https://shallowpromise.github.io/smartcity/?view=analysis&tab=sites)
 - **绕行**根据当前时刻的模型水深、道路方向和禁转关系计算。场所接驳可比较避水最短与低水深优先路线。福华一路案例中，替代线增加 55 米，沿线模型最高水深从 49 cm 降到 2 cm。[绕行案例](https://shallowpromise.github.io/smartcity/?view=routes) · [模型与数据说明](docs/route-model.md)
+- **避雨导航**可授权一次设备定位，也可随机生成福田中心片区的模拟起点。平台按当前时刻可通行的步行路程和两端接驳距离，推荐最近的室内避难场所，显示分段指引、沿线模型最高水深和绕行增加的距离。当前有 17 处室内场所可参与计算，实际入口及开放状态待核实。设备坐标只用于浏览器内计算。[使用我的位置](https://shallowpromise.github.io/smartcity/?view=rain-nav) · [体验积水绕行](https://shallowpromise.github.io/smartcity/?view=rain-nav&start=demo)
 - **工况**并排显示同一时刻的基准与比较网格。六个工况涵盖排水能力降至 70%、局部堵塞、南侧两档水位顶托，以及按深圳中部流域 2024 版公式生成的 5 年和 50 年设计雨型。每组有 49 帧，可同步播放和比较水深、积水面积、暴露人口和点位差值。[同帧工况对比](https://shallowpromise.github.io/smartcity/?view=analysis&tab=compare)
 - **实测校核**支持在浏览器导入 WGS84 站点地面积水观测，核对 9·7 复盘的同地点、同期有效样本。指标包括平均绝对误差、峰值和峰现时刻偏差，以及 15 cm 阈值的命中、漏报、空报。无实测覆盖时显示“未验证”。[实测校核](https://shallowpromise.github.io/smartcity/?view=analysis&tab=verify)
 - **三维总览**可切换六类图层、播放三套基准降雨、查询 16 个虚拟点的水深过程、定位峰值和查看处置建议。“水深解读”提供绿地与道路产流对比。[径流计算方法](docs/runoff-card.md)
@@ -47,6 +48,8 @@ node --test system/tests/*.test.mjs
 浏览器回归需在 system 目录执行 `npm ci`、`npx playwright install chromium`；启动本地服务后运行 `node tests/browser.mjs`。`node tests/pages.mjs` 单独创建临时静态服务验证项目子路径。
 
 绕行交互回归可在服务启动后运行 `BASE_URL=http://127.0.0.1:8088 node tests/routes-browser.mjs`。在仓库根目录运行 `node scripts/solve-route.mjs 7959603173 8516154909 replay-2309 240 15` 可复算福华一路案例。
+
+避雨导航的浏览器回归命令为 `BASE_URL=http://127.0.0.1:8088 node tests/walk-browser.mjs`。测试使用浏览器提供的测试坐标，覆盖位置权限、随机起点、可达场所排序与移动端地图。
 
 ## 数据来源与归属
 

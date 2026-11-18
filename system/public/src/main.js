@@ -8,6 +8,7 @@ import { createSensors } from './markers.js';
 import { ui } from './ui.js';
 import { mountGlass } from './glass.js';
 import { createRouteView } from './routes.js';
+import { createRainNavigation } from './rain-navigation.js';
 import { createAnalysis } from './analysis-view.js';
 import { mountRunoff } from './runoff-card.js';
 import { installTimeline } from './timeline.js';
@@ -115,6 +116,7 @@ async function boot() {
 
     progress(94, '装载暴雨情景与预警规则…');
     app.routeView = createRouteView(app,fetchJSON);
+    app.rainNav = createRainNavigation(app,fetchJSON);
     app.analysis = createAnalysis(app,fetchJSON,view=>ui.setView(view));
     mountRunoff();
     ui.init(app);
@@ -135,6 +137,8 @@ async function boot() {
         const params = new URLSearchParams(location.search);
         if (params.get('view') === 'analysis') {
           ui.setView('analysis',params.get('tab'));
+        } else if (params.get('view') === 'rain-nav') {
+          ui.setView('rain-nav',params.get('start'));
         } else if (params.get('view') === 'routes') {
           ui.setView('routes').then(() => app.routeView.showExample());
         }
@@ -203,6 +207,7 @@ app.resetDemo = async function () {
   for (const key of Object.keys(app.layers)) app.toggleLayer(key, true);
   document.querySelectorAll('[data-layer]').forEach(b => { b.classList.add('active'); b.setAttribute('aria-pressed', 'true'); });
   app.routeView.reset();
+  app.rainNav.reset();
   ui.setView('overview');
   document.querySelectorAll('.panel').forEach(p => p.scrollTop = 0);
   app.flyPreset('initial');
