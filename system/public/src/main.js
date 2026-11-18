@@ -35,7 +35,7 @@ async function boot() {
     const meta = await fetchJSON('./data/meta.json');
     app.meta = meta;
 
-    progress(12, '加载 5m 数字高程模型与地表覆盖…');
+    progress(12, '加载数字高程模型与地表覆盖…');
     const terrainData = await fetchJSON('./data/terrain.json');
     progress(28, '加载 3,800+ 建筑体块与路网…');
     const [buildings, vectors, sensors, scenarios] = await Promise.all([
@@ -159,7 +159,8 @@ async function boot() {
       // 水面和雨幕随时间演化。
       if (app.water?.mesh.visible) app.water.mesh.material.uniforms.uTime.value = clock.t;
       const rainRate = app.scenario ? app.scenario.frames[app.idx].rain : 0;
-      app.rain.update(dt, camera, rainRate, app.layers.rain);
+      const rainStrength = app.rain.update(dt, rainRate, app.layers.rain);
+      app.water.mesh.material.uniforms.uRain.value = rainStrength;
       if (app.sensorView) app.sensorView.update(app.frameSensors || [], app.selectedId, clock.t);
       updateCompass();
       app.labelRenderer.render(scene, camera);

@@ -1,4 +1,4 @@
-import { levelOf, riskThresholds, levelColor, fmtClock, fmtT, num, clamp } from './utils.js';
+import { wetGridStats, levelOf, riskThresholds, levelColor, fmtClock, fmtT, num, clamp } from './utils.js';
 
 const $ = (id) => document.getElementById(id);
 const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
@@ -165,7 +165,7 @@ export const ui = {
       statMaxTrend: $('stat-max-trend'), statWarnTrend: $('stat-warn-trend'),
       warnCount: $('warn-count'), alerts: $('alert-list'), dispatch: $('dispatch-list'),
       timeline: $('timeline'), timelineChart: $('timeline-chart'), tlRain: $('tl-rain-now'),
-      confidence: $('confidence'), confidenceBar: $('confidence-bar'), modelNote: $('model-note-text'),
+      wetMedian: $('wet-median'), wetCount: $('wet-count'),
       modal: $('sensor-modal'), mcName: $('mc-name'), mcSub: $('mc-sub'), mcLevel: $('mc-level'),
       mcDepth: $('mc-depth'), mcTrend: $('mc-trend'), mcGround: $('mc-ground'), mcThr: $('mc-thr'),
       mcCanvas: $('mc-canvas'), mcAdvice: $('mc-advice'), toast: $('toast'),
@@ -265,8 +265,6 @@ export const ui = {
     this.dom.tag.style.borderColor = scn.color + '55';
     this.dom.tag.style.background = scn.color + '12';
     this.dom.rainPeak.textContent = `峰值 ${Number.isFinite(scn.maxRain) ? scn.maxRain.toFixed(0) : '暂无数据'} mm/h · 累计 ${Number.isFinite(scn.totalRain) ? scn.totalRain.toFixed(0) : '暂无数据'} mm`;
-    this.dom.confidence.textContent = '预计算情景';
-    this.dom.modelNote.textContent = '预计算模型与虚拟点位，未经实测率定。仅供课程展示，不用于真实防汛决策。';
     this.dom.timeline.max = String(scn.frames.length - 1);
     this.dom.timeline.value = '0';
     const ticks = document.querySelectorAll('.tl-ticks span');
@@ -289,6 +287,10 @@ export const ui = {
     this.dom.simClock.textContent = fmtT(t);
     this.dom.timeline.value = String(idx);
     this.dom.tlRain.innerHTML = `${f.rain.toFixed(1)} <i>mm/h</i>`;
+    const grid = this.app.currentDepth;
+    const { wet, deep, median, saturated } = wetGridStats(grid);
+    this.dom.wetMedian.textContent = wet ? `湿区中位 ${saturated ? '≥' : ''}${median} cm` : '暂无 ≥5 cm 网格';
+    this.dom.wetCount.textContent = `当前 ${num(grid.length)} 格中，${num(wet)} 格达到 5 cm，${num(deep)} 格达到 50 cm。`;
     this.dom.statMax.innerHTML = `${f.maxDepth.toFixed(2)}<i>m</i>`;
     this.dom.statArea.innerHTML = `${f.areaHa.toFixed(1)}<i>ha</i>`;
 

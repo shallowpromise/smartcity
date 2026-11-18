@@ -1,58 +1,76 @@
 import * as THREE from 'three';
 
-/* 降雨粒子：CPU 更新的线段雨幕，始终跟随相机 */
+// A near-camera rain layer with widths in CSS pixels, including at city-wide zoom.
+// Each instance is one tapered drop; time is animated on the GPU.
 export function createRain(scene) {
-  const COUNT = 7000;
-  const RANGE = 3600, HEIGHT = 1500;
-  const geo = new THREE.BufferGeometry();
-  const pos = new Float32Array(COUNT * 6);
-  const data = [];
-  for (let i = 0; i < COUNT; i++) {
-    const x = (Math.random() - 0.5) * RANGE;
-    const z = (Math.random() - 0.5) * RANGE;
-    const y = Math.random() * HEIGHT;
-    const len = 22 + Math.random() * 55;
-    const speed = 900 + Math.random() * 700;
-    data.push({ x, z, y, len, speed });
-    pos[i * 6] = x; pos[i * 6 + 1] = y; pos[i * 6 + 2] = z;
-    pos[i * 6 + 3] = x + 0.22 * len; pos[i * 6 + 4] = y - len; pos[i * 6 + 5] = z;
-  }
-  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  const mat = new THREE.LineBasicMaterial({
-    color: 0x7197b0, transparent: true, opacity: 0.28,
-    blending: THREE.NormalBlending, depthWrite: false,
-  });
-  const lines = new THREE.LineSegments(geo, mat);
-  lines.frustumCulled = false;
-  lines.name = 'rain';
-  scene.add(lines);
+  const capacity = 1000;
+  const geometry = new THREE.InstancedBufferGeometry();
+  geometry.setAttribute('position', new THREE.Float32BufferAttribute([
+    -1, 0, 0, 1, 0, 0, -1, 1, 0, 1, 1, 0,
+  ], 3));
+  geometry.setIndex([0, 1, 2, 2, 1, 3]);
+  const seeds = new Float32Array(capacity * 3);
+  for (let i = 0; i < seeds.length; i++) seeds[i] = Math.random();
+  geometry.setAttribute('drop', new THREE.InstancedBufferAttribute(seeds, 3));
 
-  let intensity = 0.6;
-  let enabled = true;
-  function update(dt, camera, rainRate, on = true) {
-    enabled = on;
-    if (!enabled) { lines.visible = false; return; }
-    intensity += ((rainRate > 0.3 ? Math.min(1, 0.15 + rainRate / 45) : 0) - intensity) * Math.min(1, dt * 2);
-    lines.visible = intensity > 0.02;
-    mat.opacity = 0.05 + intensity * 0.22;
-    if (!lines.visible) return;
-    lines.position.x = camera.position.x;
-    lines.position.z = camera.position.z;
-    const p = geo.attributes.position.array;
-    const move = dt * 0.85;
-    for (let i = 0; i < COUNT; i++) {
-      const d = data[i];
-      d.y -= d.speed * move;
-      if (d.y < -10) {
-        d.y = HEIGHT + Math.random() * 200;
-        d.x = (Math.random() - 0.5) * RANGE;
-        d.z = (Math.random() - 0.5) * RANGE;
-      }
-      p[i * 6] = d.x; p[i * 6 + 1] = d.y; p[i * 6 + 2] = d.z;
-      p[i * 6 + 3] = d.x + 0.22 * d.len; p[i * 6 + 4] = d.y - d.len; p[i * 6 + 5] = d.z;
-    }
-    geo.attributes.position.needsUpdate = true;
+  const uniforms = {
+    viewport: { value: new THREE.Vector2() }, seconds: { value: 0 }, strength: { value: 0 },
+  };
+  const material = new THREE.ShaderMaterial({
+    uniforms, transparent: true, depthWrite: false, depthTest: false, side: THREE.DoubleSide,
+    vertexShader: `
+      attribute vec3 drop;
+      uniform vec2 viewport;
+      uniform float seconds, strength;
+      varying vec2 ribbon;
+      varying float weight;
+      void main() {
+        float layer = drop.z;
+        float lengthPx = mix(13.0, 35.0, layer) * (0.70 + 0.8 * strength);
+        float speed = mix(280.0, 650.0, layer) * (0.80 + 0.45 * strength);
+        float period = viewport.y + 100.0;
+        float fall = fract(drop.y + seconds * speed / period);
+        vec2 head = vec2(fract(drop.x - fall * 0.18 * period / viewport.x) * (viewport.x + 16.0) - 8.0,
+                         fall * period - 46.0);
+        vec2 direction = normalize(vec2(-0.18, 1.0));
+        vec2 normal = vec2(direction.y, -direction.x);
+        vec2 pixel = head - direction * (1.0 - position.y) * lengthPx
+                    + normal * position.x * mix(0.95, 1.90, layer);
+        gl_Position = vec4(pixel / viewport * vec2(2.0, -2.0) + vec2(-1.0, 1.0), 0.0, 1.0);
+        ribbon = position.xy;
+        weight = mix(0.53, 1.0, layer);
+      }`,
+    fragmentShader: `
+      uniform float strength;
+      varying vec2 ribbon;
+      varying float weight;
+      void main() {
+        float body = 1.0 - smoothstep(0.30, 1.0, abs(ribbon.x));
+        float tail = smoothstep(0.0, 0.68, ribbon.y) * (1.0 - smoothstep(0.92, 1.0, ribbon.y));
+        float glint = smoothstep(0.06, 0.72, ribbon.x);
+        vec3 color = mix(vec3(0.012,0.052,0.109), vec3(0.82,0.94,1.0), glint);
+        gl_FragColor = vec4(color, body * tail * weight * (0.52 + 0.42 * strength));
+      }`,
+  });
+  const lines = new THREE.Mesh(geometry, material);
+  lines.name = 'rain';
+  lines.frustumCulled = false;
+  lines.renderOrder = 7; // Above the water, below route highlights.
+  lines.visible = false;
+  scene.add(lines);
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+
+  function update(dt, rainRate, on) {
+    const strength = Math.min(1, Math.max(0, rainRate) / 80);
+    lines.visible = on && strength > 0;
+    if (!lines.visible) return 0;
+    const width = Math.max(1, innerWidth), height = Math.max(1, innerHeight);
+    uniforms.viewport.value.set(width, height);
+    uniforms.strength.value = strength;
+    const density = Math.sqrt(strength) * (reducedMotion.matches ? 0.45 : 1);
+    geometry.instanceCount = Math.min(capacity, Math.ceil(width * height / 2100 * density));
+    if (!reducedMotion.matches) uniforms.seconds.value += dt;
+    return reducedMotion.matches ? 0 : strength;
   }
-  function setVisible(v) { enabled = v; lines.visible = v; }
-  return { lines, update, setVisible };
+  return { lines, update, setVisible(on) { if (!on) lines.visible = false; } };
 }

@@ -39,6 +39,7 @@ export function createWater(terrain, meta) {
     transparent: true, depthWrite: false, side: THREE.DoubleSide,
     uniforms: {
       uTime: { value: 0 },
+      uRain: { value: 0 },
       uOpacity: { value: 0.95 },
       uFogColor: { value: new THREE.Color(DAY_FOG) },
       uFogDensity: { value: FOG_DENSITY },
@@ -59,14 +60,14 @@ export function createWater(terrain, meta) {
       }`,
     fragmentShader: /* glsl */`
       varying float vDepth; varying vec3 vW;
-      uniform float uTime; uniform float uOpacity;
+      uniform float uTime; uniform float uOpacity; uniform float uRain;
       uniform vec3 uFogColor; uniform float uFogDensity; uniform vec3 uSun;
       float hash(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }
       void main(){
         float d = vDepth;
         if(d < 0.05) discard;
-        vec3 shallow = vec3(0.14,0.52,0.60);
-        vec3 mid = vec3(0.03,0.20,0.52);
+        vec3 shallow = vec3(0.025,0.35,0.59);
+        vec3 mid = vec3(0.012,0.18,0.49);
         vec3 deep = vec3(0.02,0.07,0.34);
         vec3 purple = vec3(0.28,0.08,0.48);
         vec3 col = mix(shallow, mid, smoothstep(0.03,0.20,d));
@@ -76,22 +77,22 @@ export function createWater(terrain, meta) {
         float n = sin(vW.x*0.16 + uTime*1.6) * sin(vW.z*0.13 - uTime*1.2);
         n += 0.5*sin((vW.x+vW.z)*0.09 + uTime*2.2);
         col += vec3(0.03,0.08,0.11)*(n*0.5+0.5);
-        // 雨滴涟漪
-        vec2 cell = floor(vW.xz/4.0);
-        vec2 f = fract(vW.xz/4.0)-0.5;
-        float r = length(f);
-        float ph = fract(uTime*0.55 + hash(cell));
-        float ring = smoothstep(0.035,0.0,abs(r - ph*0.46))*(1.0-ph);
-        col += vec3(0.32,0.55,0.68)*ring*0.30*clamp(d*6.0,0.0,1.0);
-        // 浅水边缘泡沫
-        float edge = (1.0-smoothstep(0.025,0.06,d));
-        float foam = smoothstep(0.55,0.9, sin(vW.x*0.9+uTime*3.0)*sin(vW.z*0.8-uTime*2.6)*0.5+0.5);
-        col += vec3(0.45,0.70,0.85)*edge*foam*0.18;
+        // Scale rain ripples to the pixel footprint at distant camera positions.
+        float footprint = max(length(dFdx(vW.xz)),length(dFdy(vW.xz)));
+        float tile = 14.0;
+        vec2 uv = vW.xz / tile;
+        float phase = fract(uTime*0.85 + hash(floor(uv)));
+        float radius = length(fract(uv)-0.5);
+        float ring = 1.0-smoothstep(0.018,0.085,abs(radius-phase*0.44));
+        col += vec3(0.25,0.42,0.55)*ring*(1.0-phase)*uRain*(1.0-smoothstep(1.5,4.2,footprint));
+        // A narrow darker margin makes the five-centimetre display boundary visible.
+        float shore = 1.0-smoothstep(0.05,0.05+clamp(fwidth(d)*1.5,0.008,0.03),d);
+        col = mix(col,vec3(0.012,0.18,0.34),shore*0.7);
         // 菲涅尔天空反射
         vec3 V = normalize(cameraPosition - vW);
         float fres = pow(1.0-max(dot(V,vec3(0.0,1.0,0.0)),0.0), 3.0);
         col += vec3(0.10,0.24,0.34)*fres*0.40;
-        float alpha = (smoothstep(0.05,0.16,d)*0.50 + smoothstep(0.20,0.80,d)*0.34);
+        float alpha = 0.38 + smoothstep(0.05,0.18,d)*0.28 + smoothstep(0.18,0.80,d)*0.20;
         alpha *= uOpacity;
         float fog = 1.0-exp(-uFogDensity*uFogDensity*length(vW-cameraPosition)*length(vW-cameraPosition));
         col = mix(col,uFogColor,fog*0.45);

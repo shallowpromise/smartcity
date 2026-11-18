@@ -97,16 +97,20 @@
     </div>
 
     <div class="stats-grid">
-      <div class="stat"><span>最大积水深度</span><b id="stat-max">--<i>m</i></b><em id="stat-max-trend">—</em></div>
+      <div class="stat"><span>最深网格水深</span><b id="stat-max">--<i>m</i></b><em id="stat-max-trend">—</em></div>
       <div class="stat"><span>积水面积</span><b id="stat-area">--<i>ha</i></b><em>深度 &gt; 15cm</em></div>
       <div class="stat"><span>预警监测点</span><b id="stat-warn">--<i>处</i></b><em id="stat-warn-trend">—</em></div>
       <div class="stat accent"><span>受影响人口</span><b id="stat-pop">--<i>人</i></b><em>积水 &gt; 30cm 范围</em></div>
     </div>
 
     <div class="model-note">
-      <div class="mn-head"><span>数据性质</span><b id="confidence">预计算情景</b></div>
-      <div class="mn-bar" hidden><i id="confidence-bar"></i></div>
-      <p id="model-note-text">DEM 5m + OSM 建筑/路网 + ERA5 降雨，二维扩散波模型，10 分钟滚动输出。</p>
+      <details id="depth-details">
+        <summary>水深解读 <strong id="wet-median"></strong></summary>
+        <p id="wet-count"></p>
+        <p>中位数只统计模型水深达到 5 cm 的网格。虚拟监测点优先选在易涝格，告警按水深排序。</p>
+        <p>模型用 SCS-CN 按地表类型估算下渗等降雨损失，再计算地表汇流和概化排水。局部水深受低洼地形、周边来水和排水能力影响。</p>
+      </details>
+      <p id="model-note-text">预计算模型与虚拟点位，未经逐点实测率定。仅供课程展示。</p>
     </div>
   </aside>
 

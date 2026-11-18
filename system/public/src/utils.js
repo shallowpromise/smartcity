@@ -51,3 +51,23 @@ export function hexToRgb(hex) {
 
 const riskFactor = type => type === 'underpass' ? 0.62 : type === 'river' ? 1.6 : 1;
 export const riskThresholds = (type = 'road') => [...LEVELS].reverse().map(l => l.min * riskFactor(type));
+
+// Exported depths are whole centimetres. A byte of 255 is a lower bound.
+export function wetGridStats(depth) {
+  const histogram = new Uint32Array(256);
+  let wet = 0, deep = 0;
+  for (const cm of depth) {
+    if (cm < 5) continue;
+    histogram[cm]++;
+    wet++;
+    if (cm >= 50) deep++;
+  }
+  if (!wet) return { wet, deep, median: null, saturated: false };
+  const left = Math.ceil(wet/2), right = Math.floor(wet/2)+1;
+  let count = 0, low = 0;
+  for (let cm = 5; cm < histogram.length; cm++) {
+    count += histogram[cm];
+    if (!low && count >= left) low = cm;
+    if (count >= right) return { wet, deep, median: (low+cm)/2, saturated: cm === 255 };
+  }
+}
