@@ -12,7 +12,8 @@
 - **避雨导航**可授权一次设备定位，也可随机生成福田中心片区的模拟起点。平台按当前时刻可通行的步行路程和两端接驳距离，推荐最近的室内避难场所，显示分段指引、沿线模型最高水深和绕行增加的距离。当前有 17 处室内场所可参与计算，实际入口及开放状态待核实。设备坐标只用于浏览器内计算。[使用我的位置](https://shallowpromise.github.io/smartcity/?view=rain-nav) · [体验积水绕行](https://shallowpromise.github.io/smartcity/?view=rain-nav&start=demo)
 - **工况**并排显示同一时刻的基准与比较网格。六个工况涵盖排水能力降至 70%、局部堵塞、南侧两档水位顶托，以及按深圳中部流域 2024 版公式生成的 5 年和 50 年设计雨型。每组有 49 帧，可同步播放和比较水深、积水面积、暴露人口和点位差值。[同帧工况对比](https://shallowpromise.github.io/smartcity/?view=analysis&tab=compare)
 - **实测校核**支持在浏览器导入 WGS84 站点地面积水观测，核对 9·7 复盘的同地点、同期有效样本。指标包括平均绝对误差、峰值和峰现时刻偏差，以及 15 cm 阈值的命中、漏报、空报。无实测覆盖时显示“未验证”。[实测校核](https://shallowpromise.github.io/smartcity/?view=analysis&tab=verify)
-- **三维总览**可切换六类图层、播放三套基准降雨、查询 16 个虚拟点的水深过程、定位峰值和查看处置建议。“水深解读”提供绿地与道路产流对比。[径流计算方法](docs/runoff-card.md)
+- **态势总览**展示水深、积水面积、预警点数和受影响人口。“水深解读”可展开查看网格统计与地表产流对比。[径流计算方法](docs/runoff-card.md)
+- **监测预警**可查看按水深排列的 16 个虚拟点、风险分级和点位详情。**推演研判**可切换三套降雨情景、查看降雨曲线并控制播放。**联动处置**按当前风险列出建议、协同单位与时效。顶部每次只打开所选面板，四页共用地图与时间轴。[监测预警](https://shallowpromise.github.io/smartcity/?view=monitor) · [推演研判](https://shallowpromise.github.io/smartcity/?view=simulate) · [联动处置](https://shallowpromise.github.io/smartcity/?view=dispatch)
 
 名录和阈值保留发布机构及资料日期。图上水深、道路通行条件和顶托工况来自模型。街道与站点导入文件只在当前页面处理，刷新后清除。官方实时雨量、水位、道路管制和场所开放状态待接入。[数据来源与覆盖](https://shallowpromise.github.io/smartcity/?view=analysis&tab=sources)
 

@@ -1,7 +1,7 @@
 /* Analysis tools share the same map, timeline and light material as the main dashboard. */
 .analysis-panel {display:none;left:16px;top:96px;width:min(428px,calc(100vw - 36px));max-height:calc(100dvh - 210px);padding:16px;overflow:auto;overscroll-behavior:contain;font-size:13px;}
 body[data-view=analysis]:not(.map-focused) .analysis-panel {display:block;}
-body[data-view=analysis] :is(.panel-left,.panel-right,.route-panel,.view-presets,.scene-caption) {display:none!important;}
+body[data-view=analysis] :is(.route-panel,.view-presets,.scene-caption) {display:none!important;}
 body[data-view=analysis] .map-tools {right:16px;}
 body[data-view=analysis] .compass {right:20px;}
 .analysis-panel [hidden],.route-panel [hidden] {display:none!important;}

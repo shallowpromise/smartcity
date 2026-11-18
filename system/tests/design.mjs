@@ -32,6 +32,19 @@ try{
   assert.equal(sizes.length,6);
   for(const {width,height,corner} of sizes) assert.ok(width>=44 && height===width && corner>=.20 && corner<.5);
  }
+ const coreViews = {overview:'#stat-max',monitor:'#alert-list',simulate:'#scenario-tabs',dispatch:'#dispatch-list'};
+ async function checkDashboardTabs() {
+  const moment = await page.evaluate(()=>[window.__app.scenario.id,window.__app.idx]);
+  for (const [view, content] of Object.entries(coreViews)) {
+   await page.locator('#tab-'+view).click();
+   const panel = page.getByRole('tabpanel');
+   assert.equal(await panel.count(),1);
+   assert.equal(await panel.getAttribute('id'),'view-'+view);
+   assert.equal(await page.getByRole('tab',{selected:true}).getAttribute('aria-controls'),'view-'+view);
+   for (const selector of Object.values(coreViews)) assert.equal(await page.locator(selector).isVisible(),selector===content);
+   assert.deepEqual(await page.evaluate(()=>[window.__app.scenario.id,window.__app.idx]),moment);
+  }
+ }
  await checkLayerButtons();
  const water=page.locator('.map-tools [data-layer="water"]');
  await water.focus();await page.keyboard.press('Enter');
@@ -40,8 +53,9 @@ try{
  await page.keyboard.press('Enter');
  assert.equal(await water.getAttribute('aria-pressed'),'true');
  await checkLens('.main-nav');
- await page.locator('[data-view="simulate"]').focus();
- await page.keyboard.press('Enter');
+ await checkDashboardTabs();
+ await page.getByRole('tab',{name:'联动处置'}).press('ArrowLeft');
+ assert.equal(await page.getByRole('tab',{selected:true}).getAttribute('id'),'tab-simulate');
  await checkLens('.main-nav');
  await page.locator('[data-id="design-5"]').click();
  await page.waitForFunction(()=>window.__app.scenario.id==='design-5');
@@ -58,17 +72,21 @@ try{
  for(const [width,height] of [[1366,768],[1920,1080]]){
   await page.setViewportSize({width,height});await page.waitForTimeout(1500);
   await checkLens('.main-nav');
-  const note=await page.locator('.model-note').boundingBox();const panel=await page.locator('.panel-left').boundingBox();
-  assert.ok(note.y+note.height<=panel.y+panel.height, JSON.stringify({width,note,panel}));
+  const card=await page.locator('#view-simulate .scenario-card').boundingBox();const panel=await page.locator('#dashboard-panel').boundingBox();
+  assert.ok(card.y+card.height<=panel.y+panel.height, JSON.stringify({width,card,panel}));
   await page.screenshot({path:fileURLToPath(new URL(`design-${width}.png`,out))});
  }
  await page.locator('#btn-focus').click();
  await page.screenshot({path:fileURLToPath(new URL('design-focus.png',out))});
  await page.setViewportSize({width:900,height:780});
- await page.locator('[data-view="monitor"]').click();assert.equal(await page.locator('.panel-right').isVisible(),true);
- await page.locator('#btn-focus').click();assert.equal(await page.locator('.panel-right').isVisible(),false);
+ await checkDashboardTabs();
+ await page.locator('#tab-monitor').click();assert.equal(await page.getByRole('tabpanel',{name:'监测预警'}).isVisible(),true);
+ await page.locator('#btn-focus').click();assert.equal(await page.getByRole('tabpanel').count(),0);
+ await page.locator('#btn-focus').click();assert.equal(await page.getByRole('tabpanel').count(),1);
+ assert.equal(await page.getByRole('tabpanel').getAttribute('id'),'view-monitor');
  await page.setViewportSize({width:390,height:844});
- await page.locator('[data-view=simulate]').click();
+ await checkDashboardTabs();
+ await page.locator('#tab-simulate').click();
  await checkLayerButtons();
  await checkLens('.main-nav');await checkLens('.scenario-tabs');
  const side=await page.locator('.panel-left').boundingBox();

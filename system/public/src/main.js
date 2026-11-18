@@ -128,20 +128,18 @@ async function boot() {
     controls.update();
 
     mountGlass();
+    app.togglePlay(false);
+    const params = new URLSearchParams(location.search);
+    const view = params.get('view') || 'overview';
+    const ready = ui.setView(view, view === 'rain-nav' ? params.get('start') : params.get('tab'));
+    if (view === 'routes') ready.then(() => {
+      if (document.body.dataset.view === 'routes') app.routeView.showExample();
+    });
     progress(100, '数字孪生底座就绪');
     setTimeout(() => {
       document.getElementById('loader').classList.add('done');
       setTimeout(() => {
         document.getElementById('loader').style.display = 'none';
-        app.togglePlay(false);
-        const params = new URLSearchParams(location.search);
-        if (params.get('view') === 'analysis') {
-          ui.setView('analysis',params.get('tab'));
-        } else if (params.get('view') === 'rain-nav') {
-          ui.setView('rain-nav',params.get('start'));
-        } else if (params.get('view') === 'routes') {
-          ui.setView('routes').then(() => app.routeView.showExample());
-        }
       }, 700);
     }, 450);
 

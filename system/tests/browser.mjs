@@ -24,6 +24,7 @@ try {
   assert.equal(await page.evaluate(()=>window.__app.scenario.frames[window.__app.idx].maxDepth),await page.evaluate(()=>Math.max(...window.__app.scenario.frames.map(f=>f.maxDepth))));
   const counts=await page.evaluate(()=>[document.querySelector('#stat-warn').textContent,document.querySelector('#warn-count').textContent]);
   assert.equal(counts[0],counts[1]+'处');
+  await page.getByRole('tab',{name:'监测预警'}).click();
   await page.locator('.alert-item').first().click();
   await page.evaluate(()=>window.__app.setFrame(20));
   assert.match(await page.locator('#mc-sub').textContent(),/T\+03:20/);
@@ -37,11 +38,14 @@ try {
     await page.locator(`[data-layer="${layer}"]`).click();
     assert.equal(await page.evaluate(key=>window.__app.layers[key],layer),false);
   }
+  await page.getByRole('tab',{name:'推演研判'}).click();
   await page.locator('#speed-btn').click();
   await page.locator('#btn-demo-reset').click();
   await page.waitForTimeout(1200);
   const reset=await page.evaluate(()=>{const a=window.__app;return {id:a.scenario.id,idx:a.idx,speed:a.speed,playing:a.playing,layers:Object.values(a.layers),selected:a.selectedId};});
   assert.deepEqual(reset,{id:'replay-2309',idx:0,speed:1,playing:false,layers:[true,true,true,true,true,true],selected:null});
+  assert.equal(await page.getByRole('tabpanel',{name:'态势总览'}).isVisible(),true);
+  await page.getByRole('tab',{name:'推演研判'}).click();
   await page.locator('#btn-play').click();
   await page.waitForFunction(()=>window.__app.idx>0);
   await page.locator('#btn-play').click();
@@ -55,9 +59,9 @@ try {
     await page.setViewportSize(size);
     await page.evaluate(async()=>{await window.__app.resetDemo();window.__app.setFrame(36);});
     await page.waitForTimeout(2700);
-    const bounds=await page.evaluate(()=>['.panel-left','.panel-right','.timeline','.map-tools','.scene-caption'].map(s=>{const r=document.querySelector(s).getBoundingClientRect();return {s,x:r.x,y:r.y,right:r.right,bottom:r.bottom};}));
+    const bounds=await page.evaluate(()=>['#dashboard-panel','.timeline','.map-tools','.scene-caption'].map(s=>{const r=document.querySelector(s).getBoundingClientRect();return {s,x:r.x,y:r.y,right:r.right,bottom:r.bottom};}));
     for(const r of bounds) assert.ok(r.x>=0 && r.y>=0 && r.right<=size.width && r.bottom<=size.height,JSON.stringify(r));
-    assert.ok(bounds[0].bottom<bounds[2].y && bounds[1].bottom<bounds[2].y);
+    assert.ok(bounds[0].bottom<bounds[1].y);
     await page.screenshot({path:fileURLToPath(new URL(`${size.width}-scene.png`,out))});
   }
   // Exercise all scenario/frame boundaries and repeat resets without creating new render resources.
@@ -67,6 +71,16 @@ try {
   }
   assert.equal(await page.evaluate(()=>window.__app.renderer.info.memory.geometries),before);
   await page.evaluate(()=>window.__app.resetDemo());
+  const base=process.env.BASE_URL || 'http://127.0.0.1:8088';
+  await page.goto(new URL('?view=dispatch',base).href);
+  await page.getByRole('tabpanel',{name:'联动处置'}).waitFor({timeout:60000});
+  assert.equal(await page.getByRole('tabpanel').count(),1);
+  for (const [view,ready] of [['routes','#route-example'],['rain-nav','#walk-demo'],['analysis','#an-street'],['overview','#model-verify']]) {
+    await page.locator('#tab-'+view).click();
+    await page.locator(ready+':enabled').waitFor();
+    assert.equal(await page.getByRole('tabpanel').count(),1);
+    assert.equal(await page.getByRole('tabpanel').getAttribute('id'),'view-'+view);
+  }
   assert.deepEqual(errors,[]);
   const unavailable = await browser.newPage();
   await unavailable.addInitScript(() => {

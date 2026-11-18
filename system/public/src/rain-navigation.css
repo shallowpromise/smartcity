@@ -3,7 +3,7 @@
   overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;font-size:13px;color:var(--text);
 }
 body[data-view="rain-nav"]:not(.map-focused) .rain-nav-panel {display:block;}
-body[data-view="rain-nav"] :is(.panel-left,.panel-right,.view-presets,.scene-caption) {display:none!important;}
+body[data-view="rain-nav"] :is(.view-presets,.scene-caption) {display:none!important;}
 body[data-view="rain-nav"] .map-tools {right:16px;}
 body[data-view="rain-nav"] .compass {right:20px;}
 .rain-nav-panel [hidden] {display:none!important;}

@@ -177,6 +177,7 @@ export const ui = {
       $('btn-focus').textContent = focused ? '显示面板' : '专注地图';
       this.app.routeView?.locate();
       this.app.rainNav?.locate();
+      if (!focused && this.scn && document.body.dataset.view === 'simulate') this.drawCharts(this.scn, this.idx);
     };
     // 事件
     this.dom.play.onclick = () => this.app.togglePlay();
@@ -225,7 +226,19 @@ export const ui = {
       this.closeModal();
     };
     this.dom.modal.addEventListener('click', (e) => { if (e.target === this.dom.modal) this.closeModal(); });
-    document.querySelectorAll('.nav-item').forEach(b => b.onclick = () => this.setView(b.dataset.view));
+    this.mainTabs = [...document.querySelectorAll('.main-nav [role="tab"]')];
+    this.mainTabs.forEach((button, index, tabs) => {
+      button.onclick = () => this.setView(button.dataset.view);
+      button.onkeydown = event => {
+        if (event.altKey || event.ctrlKey || event.metaKey) return;
+        const next = { ArrowRight: (index + 1) % tabs.length, ArrowLeft: (index + tabs.length - 1) % tabs.length,
+          Home: 0, End: tabs.length - 1 }[event.key];
+        if (next === undefined) return;
+        event.preventDefault();
+        tabs[next].focus();
+        this.setView(tabs[next].dataset.view);
+      };
+    });
     addEventListener('keydown', e => {
       if (e.code === 'Tab' && this.modalSensor) {
         const buttons = [...this.dom.modal.querySelectorAll('button')];
@@ -291,8 +304,7 @@ export const ui = {
   },
 
   drawCharts(scn, idx) {
-    const total = scn.duration;
-    drawRain(this.dom.rainChart, scn.rain, (idx / (scn.frames.length - 1)) * total, total);
+    if (this.dom.rainChart.clientWidth) drawRain(this.dom.rainChart, scn.rain, scn.frames[idx].t, scn.duration);
     drawTimeline(this.dom.timelineChart, scn.frames.map((f) => f.rain), idx);
   },
 
@@ -330,7 +342,9 @@ export const ui = {
     this.dom.statWarn.innerHTML = `${active.length}<i>处</i>`;
     this.dom.statWarnTrend.textContent = missing ? `${missing} 处暂无数据` : dW > 0 ? `▲ 新增 ${dW} 处` : dW < 0 ? `▼ 解除 ${-dW} 处` : '— 数量持平';
     this.dom.warnCount.textContent = active.length;
-    $('scene-summary').textContent = `${scn.short || scn.name} · ${fmtT(t)} · 模型结果`;
+    const frameLabel = `${scn.short || scn.name} · ${fmtT(t)}`;
+    $('dashboard-context').textContent = frameLabel;
+    $('scene-summary').textContent = frameLabel + ' · 模型结果';
     this.dom.timeline.setAttribute('aria-valuetext', fmtT(t));
     this.dom.alerts.innerHTML = '';
     if (!active.length && missing < list.length) {
@@ -446,21 +460,35 @@ export const ui = {
   },
 
   setView(view,tab) {
+    const selected = this.mainTabs.find(button => button.dataset.view === view);
+    if (!selected) return;
+    const panel = $(selected.getAttribute('aria-controls'));
+    const previousPanel = document.activeElement?.closest('[role="tabpanel"]');
+    const dashboard = $('dashboard-panel');
+    const changed = document.body.dataset.view !== view;
     document.body.classList.remove('map-focused');
     $('btn-focus').setAttribute('aria-pressed', 'false');
     $('btn-focus').textContent = '专注地图';
     document.body.dataset.view = view;
+    for (const button of this.mainTabs) {
+      const on = button === selected;
+      $(button.getAttribute('aria-controls')).hidden = !on;
+      button.classList.toggle('active', on);
+      button.setAttribute('aria-selected', String(on));
+      button.tabIndex = on ? 0 : -1;
+    }
+    dashboard.hidden = !dashboard.contains(panel);
+    if (changed) dashboard.scrollTop = 0;
+    if (previousPanel && previousPanel !== panel) selected.focus({preventScroll:true});
+    syncGlassSelection(selected.parentElement);
+    if (view === 'simulate' && this.scn) {
+      syncGlassSelection(this.dom.tabs);
+      this.drawCharts(this.scn, this.idx);
+    }
     if (view !== 'rain-nav') this.app.rainNav.show(false);
     const ready = this.app.routeView.show(view === 'routes');
     const rainReady = view === 'rain-nav' && this.app.rainNav.show(true, tab === 'demo');
     const analysisReady = this.app.analysis.show(view === 'analysis',tab);
-    document.querySelectorAll('.nav-item').forEach(b => {
-      b.classList.toggle('active', b.dataset.view === view);
-      b.setAttribute('aria-pressed', String(b.dataset.view === view));
-    });
-    syncGlassSelection(document.querySelector('.main-nav'));
-    const target = { monitor: this.dom.alerts, simulate: this.dom.tabs, dispatch: this.dom.dispatch }[view];
-    target?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     return view === 'analysis' ? analysisReady : view === 'rain-nav' ? rainReady : ready;
   },
 

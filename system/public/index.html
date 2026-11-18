@@ -14,7 +14,7 @@
 { "imports": { "three": "./vendor/three/three.module.js", "three/addons/": "./vendor/jsm/" } }
 </script>
 </head>
-<body>
+<body data-view="overview">
 <div id="app">
   <div id="scene-wrap"></div>
   <div id="labels"></div>
@@ -38,15 +38,15 @@
       </div>
     </div>
 
-    <nav class="main-nav" data-glass-group aria-label="主导航">
-      <button class="nav-item active" data-view="overview" aria-pressed="true"><i></i>态势总览</button>
-      <button class="nav-item" data-view="monitor" aria-pressed="false"><i></i>监测预警</button>
-      <button class="nav-item" data-view="simulate" aria-pressed="false"><i></i>推演研判</button>
-      <button class="nav-item" data-view="dispatch" aria-pressed="false"><i></i>联动处置</button>
-      <button class="nav-item" data-view="routes" aria-pressed="false"><i></i>积水绕行</button>
-      <button class="nav-item" data-view="rain-nav" aria-pressed="false"><i></i>避雨导航</button>
-      <button class="nav-item" data-view="analysis" aria-pressed="false"><i></i>数据研判</button>
-    </nav>
+    <div class="main-nav" data-glass-group role="tablist" aria-label="主导航">
+      <button class="nav-item active" data-view="overview" role="tab" id="tab-overview" aria-controls="view-overview" aria-selected="true"><i></i>态势总览</button>
+      <button class="nav-item" data-view="monitor" role="tab" id="tab-monitor" aria-controls="view-monitor" aria-selected="false" tabindex="-1"><i></i>监测预警</button>
+      <button class="nav-item" data-view="simulate" role="tab" id="tab-simulate" aria-controls="view-simulate" aria-selected="false" tabindex="-1"><i></i>推演研判</button>
+      <button class="nav-item" data-view="dispatch" role="tab" id="tab-dispatch" aria-controls="view-dispatch" aria-selected="false" tabindex="-1"><i></i>联动处置</button>
+      <button class="nav-item" data-view="routes" role="tab" id="tab-routes" aria-controls="view-routes" aria-selected="false" tabindex="-1"><i></i>积水绕行</button>
+      <button class="nav-item" data-view="rain-nav" role="tab" id="tab-rain-nav" aria-controls="view-rain-nav" aria-selected="false" tabindex="-1"><i></i>避雨导航</button>
+      <button class="nav-item" data-view="analysis" role="tab" id="tab-analysis" aria-controls="view-analysis" aria-selected="false" tabindex="-1"><i></i>数据研判</button>
+    </div>
 
     <div class="top-right">
       <button id="btn-focus" aria-pressed="false" title="隐藏侧栏，专注三维地图">专注地图</button>
@@ -62,97 +62,102 @@
     </div>
   </header>
 
-  <!-- ============ 左侧面板 ============ -->
-  <aside class="panel panel-left">
-    <div class="panel-head">
-      <div><h2>暴雨内涝情景推演</h2></div>
-    </div>
-
-    <div class="scenario-tabs" data-glass-group role="group" id="scenario-tabs" aria-label="选择推演情景"></div>
-    <div id="scenario-status" role="status" hidden></div>
-
-    <div class="scenario-card">
-      <div class="scenario-top">
-        <div>
-          <div class="scenario-name" id="scenario-name">—</div>
-          <div class="scenario-desc" id="scenario-desc">—</div>
-        </div>
-        <div class="scenario-tag" id="scenario-tag">—</div>
+  <div class="panel panel-left" id="dashboard-panel">
+    <p id="dashboard-context"></p>
+    <section id="view-overview" role="tabpanel" aria-labelledby="tab-overview" tabindex="0">
+      <div class="panel-head"><h2>态势总览</h2></div>
+      <div class="stats-grid">
+        <div class="stat"><span>最深网格水深</span><b id="stat-max">--<i>m</i></b><em id="stat-max-trend">—</em></div>
+        <div class="stat"><span>积水面积</span><b id="stat-area">--<i>ha</i></b><em>深度 &gt; 15cm</em></div>
+        <div class="stat"><span>预警监测点</span><b id="stat-warn">--<i>处</i></b><em id="stat-warn-trend">—</em></div>
+        <div class="stat accent"><span>受影响人口</span><b id="stat-pop">--<i>人</i></b><em>积水 &gt; 30cm 范围</em></div>
       </div>
-      <div class="rain-chart-wrap">
-        <canvas id="rain-chart"></canvas>
-        <div class="chart-axis"><span>T+0h</span><span>T+4h</span><span>T+8h</span></div>
-        <div class="rain-peak" id="rain-peak">峰值 -- mm/h</div>
-      </div>
-      <div class="sim-time">
-        <div>
-          <span class="sim-label">模拟时刻</span>
-          <b id="sim-clock">T+00:00</b>
-        </div>
-        <div class="sim-controls">
-          <button id="btn-play" class="ctrl primary" title="播放/暂停">
-            <svg viewBox="0 0 24 24" class="ico-play"><path d="M8 5.5v13l10-6.5-10-6.5Z" fill="currentColor"/></svg>
-            <svg viewBox="0 0 24 24" class="ico-pause"><path d="M8 5h3v14H8zM14 5h3v14h-3z" fill="currentColor"/></svg>
-          </button>
-          <button id="btn-reset" class="ctrl" title="回到起点"><svg viewBox="0 0 24 24"><path d="M5 12a7 7 0 1 0 2.1-5M5 5v4h4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></button>
-          <button class="speed" id="speed-btn" aria-label="切换播放倍速">1×</button>
-        </div>
-      </div>
-    </div>
 
-    <div class="stats-grid">
-      <div class="stat"><span>最深网格水深</span><b id="stat-max">--<i>m</i></b><em id="stat-max-trend">—</em></div>
-      <div class="stat"><span>积水面积</span><b id="stat-area">--<i>ha</i></b><em>深度 &gt; 15cm</em></div>
-      <div class="stat"><span>预警监测点</span><b id="stat-warn">--<i>处</i></b><em id="stat-warn-trend">—</em></div>
-      <div class="stat accent"><span>受影响人口</span><b id="stat-pop">--<i>人</i></b><em>积水 &gt; 30cm 范围</em></div>
-    </div>
+      <div class="model-note">
+        <details id="depth-details">
+          <summary>水深解读 <strong id="wet-median"></strong></summary>
+          <p id="wet-count"></p>
+          <p>中位数只统计模型水深达到 5 cm 的网格。虚拟监测点优先选在易涝格，告警按水深排序。</p>
+          <p>模型用 SCS-CN 按地表类型估算下渗等降雨损失，再计算地表汇流和概化排水。局部水深受低洼地形、周边来水和排水能力影响。</p>
+          <div class="runoff-card">
+            <label for="runoff-rain">地表产流对比</label>
+            <select id="runoff-rain" aria-label="累计降雨"><option value="50">降雨 50 mm</option><option value="100" selected>降雨 100 mm</option><option value="200">降雨 200 mm</option></select>
+            <div data-runoff-cn="58"><b>绿地</b><meter aria-label="绿地径流量"></meter><output></output></div>
+            <div data-runoff-cn="96"><b>道路</b><meter aria-label="道路径流量"></meter><output></output></div>
+            <p>SCS-CN 单位面积产流。余量包含下渗、截留等损失，地面积水另受汇流与排水影响。</p>
+          </div>
+        </details>
+        <p id="model-note-text">预计算水深 · 虚拟点位。<button id="model-verify" class="an-inline">实测覆盖与误差</button></p>
+      </div>
+    </section>
 
-    <div class="model-note">
-      <details id="depth-details">
-        <summary>水深解读 <strong id="wet-median"></strong></summary>
-        <p id="wet-count"></p>
-        <p>中位数只统计模型水深达到 5 cm 的网格。虚拟监测点优先选在易涝格，告警按水深排序。</p>
-        <p>模型用 SCS-CN 按地表类型估算下渗等降雨损失，再计算地表汇流和概化排水。局部水深受低洼地形、周边来水和排水能力影响。</p>
-        <div class="runoff-card">
-          <label for="runoff-rain">地表产流对比</label>
-          <select id="runoff-rain" aria-label="累计降雨"><option value="50">降雨 50 mm</option><option value="100" selected>降雨 100 mm</option><option value="200">降雨 200 mm</option></select>
-          <div data-runoff-cn="58"><b>绿地</b><meter aria-label="绿地径流量"></meter><output></output></div>
-          <div data-runoff-cn="96"><b>道路</b><meter aria-label="道路径流量"></meter><output></output></div>
-          <p>SCS-CN 单位面积产流。余量包含下渗、截留等损失，地面积水另受汇流与排水影响。</p>
+    <section id="view-monitor" role="tabpanel" aria-labelledby="tab-monitor" tabindex="0" hidden>
+      <div class="panel-head">
+        <h2>监测预警</h2>
+        <div class="warn-count"><b id="warn-count">0</b><span>处告警</span></div>
+      </div>
+      <details class="legend">
+        <summary>模型点位风险等级 <span>单位为 cm</span></summary>
+        <div class="legend-items">
+          <div><i style="--c:#4da3ff"></i>蓝 5–15</div>
+          <div><i style="--c:#ffd166"></i>黄 15–30</div>
+          <div><i style="--c:#ff9f43"></i>橙 30–50</div>
+          <div><i style="--c:#ff4d5e"></i>红 50–100</div>
+          <div><i style="--c:#c77dff"></i>紫 ≥100</div>
         </div>
+        <p class="legend-note">道路和社区采用基准分级，下穿 ×0.62，河道 ×1.6。水面颜色表示连续水深。<button id="risk-rain" class="an-inline">查看街道降雨阈值</button></p>
       </details>
-      <p id="model-note-text">预计算水深 · 虚拟点位。<button id="model-verify" class="an-inline">实测覆盖与误差</button></p>
-    </div>
-  </aside>
+      <div class="alert-list" id="alert-list"></div>
+    </section>
 
-  <!-- ============ 右侧面板 ============ -->
-  <aside class="panel panel-right">
-    <div class="panel-head">
-      <div><h2>情景积水风险</h2></div>
-      <div class="warn-count"><b id="warn-count">0</b><span>处告警</span></div>
-    </div>
-    <div class="alert-list" id="alert-list"></div>
-
-    <div class="panel-head sub">
-      <div><h2>处置建议</h2></div>
-      <span class="auto-tag">待现场核实</span>
-    </div>
-    <div class="dispatch-list" id="dispatch-list"></div>
-
-    <div class="legend">
-      <div class="legend-head">模型点位风险等级 <span>单位：cm</span></div>
-      <div class="legend-items">
-        <div><i style="--c:#4da3ff"></i>蓝 5–15</div>
-        <div><i style="--c:#ffd166"></i>黄 15–30</div>
-        <div><i style="--c:#ff9f43"></i>橙 30–50</div>
-        <div><i style="--c:#ff4d5e"></i>红 50–100</div>
-        <div><i style="--c:#c77dff"></i>紫 ≥100</div>
+    <section id="view-simulate" role="tabpanel" aria-labelledby="tab-simulate" tabindex="0" hidden>
+      <div class="panel-head">
+        <h2>暴雨内涝情景推演</h2>
       </div>
-      <p class="legend-note">道路和社区采用基准分级，下穿 ×0.62，河道 ×1.6。水面颜色表示连续水深。<button id="risk-rain" class="an-inline">查看街道降雨阈值</button></p>
-    </div>
-  </aside>
 
-  <aside class="panel route-panel" aria-label="积水绕行">
+      <div class="scenario-tabs" data-glass-group role="group" id="scenario-tabs" aria-label="选择推演情景"></div>
+      <div id="scenario-status" role="status" hidden></div>
+
+      <div class="scenario-card">
+        <div class="scenario-top">
+          <div>
+            <div class="scenario-name" id="scenario-name">—</div>
+            <div class="scenario-desc" id="scenario-desc">—</div>
+          </div>
+          <div class="scenario-tag" id="scenario-tag">—</div>
+        </div>
+        <div class="rain-chart-wrap">
+          <canvas id="rain-chart"></canvas>
+          <div class="chart-axis"><span>T+0h</span><span>T+4h</span><span>T+8h</span></div>
+          <div class="rain-peak" id="rain-peak">峰值 -- mm/h</div>
+        </div>
+        <div class="sim-time">
+          <div>
+            <span class="sim-label">模拟时刻</span>
+            <b id="sim-clock">T+00:00</b>
+          </div>
+          <div class="sim-controls">
+            <button id="btn-play" class="ctrl primary" title="播放/暂停">
+              <svg viewBox="0 0 24 24" class="ico-play"><path d="M8 5.5v13l10-6.5-10-6.5Z" fill="currentColor"/></svg>
+              <svg viewBox="0 0 24 24" class="ico-pause"><path d="M8 5h3v14H8zM14 5h3v14h-3z" fill="currentColor"/></svg>
+            </button>
+            <button id="btn-reset" class="ctrl" title="回到起点"><svg viewBox="0 0 24 24"><path d="M5 12a7 7 0 1 0 2.1-5M5 5v4h4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></button>
+            <button class="speed" id="speed-btn" aria-label="切换播放倍速">1×</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-dispatch" role="tabpanel" aria-labelledby="tab-dispatch" tabindex="0" hidden>
+      <div class="panel-head">
+        <h2>联动处置建议</h2>
+        <span class="auto-tag">待现场核实</span>
+      </div>
+      <div class="dispatch-list" id="dispatch-list"></div>
+    </section>
+  </div>
+
+  <section class="panel route-panel" id="view-routes" role="tabpanel" aria-labelledby="tab-routes" tabindex="0" hidden>
     <div class="panel-head"><h2>积水绕行</h2><span id="route-time"></span></div>
     <label>降雨情景<select id="route-scenario" disabled></select></label>
     <div class="route-stop"><label for="route-from">起点</label><select id="route-from" disabled></select><button data-pick="from" disabled aria-label="在地图选起点">图选</button></div>
@@ -170,11 +175,11 @@
     </div>
     <p class="legend-note">红色路段达到排除水深。拖动时间轴可重新计算。约 32 米地面积水模拟，部分禁转资料不完整。实际通行以现场交通管制为准。</p>
     <a class="route-credit" href="https://www.openstreetmap.org/copyright">道路数据 © OpenStreetMap contributors</a>
-  </aside>
+  </section>
 
   <div id="pick-hint" hidden><span></span><button>取消选点</button></div>
 
-  <aside class="panel rain-nav-panel" aria-label="步行避雨导航">
+  <section class="panel rain-nav-panel" id="view-rain-nav" role="tabpanel" aria-labelledby="tab-rain-nav" tabindex="0" hidden>
     <header class="walk-head"><h2>避雨导航</h2><span id="walk-clock"></span></header>
     <div class="walk-location-actions">
       <button id="walk-geo" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m20 4-6.4 16-3-6.6L4 10.5Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>使用我的位置</button>
@@ -205,9 +210,9 @@
       <p>地图路线止于场所附近的地面步道。模型按所选情景和时刻排除超阈或缺测段。实际入口、开放情况与现场积水需核实。设备经纬度采用 WGS84，仅在本页面用于计算。</p>
       <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">步道 © OpenStreetMap contributors</a>
     </details>
-  </aside>
+  </section>
 
-  <aside class="panel analysis-panel" aria-label="数据研判">
+  <section class="panel analysis-panel" id="view-analysis" role="tabpanel" aria-labelledby="tab-analysis" tabindex="0" hidden>
     <header class="analysis-head"><h2>数据研判</h2><span id="an-clock"></span><button id="an-play" aria-pressed="false">播放</button></header>
     <nav class="analysis-nav" aria-label="研判工具">
       <button data-analysis="rain" aria-pressed="true">街道雨量</button><button data-analysis="sites">设施</button>
@@ -280,7 +285,7 @@
       <div class="an-title"><h3>数据来源与覆盖</h3><span>2026-11-18 整理</span></div>
       <div id="an-sources" class="an-list"></div><h4>待接入资料</h4><div id="an-pending" class="an-list"></div>
     </section>
-  </aside>
+  </section>
 
   <!-- ============ 底部时间轴 ============ -->
   <footer class="timeline">

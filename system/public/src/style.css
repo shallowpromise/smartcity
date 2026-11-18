@@ -87,8 +87,6 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
 @keyframes panel-in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 .panel-left{left:18px;top:86px;width:342px;max-height:calc(100vh - 222px);padding:16px 16px 14px;
   overflow-y:auto;overflow-x:hidden}
-.panel-right{right:18px;top:86px;width:352px;max-height:calc(100vh - 222px);padding:16px 16px 14px;
-  overflow-y:auto;overflow-x:hidden;animation-delay:.12s}
 .panel::-webkit-scrollbar{width:3px}
 .panel::-webkit-scrollbar-thumb{background:rgba(95,215,255,.3)}
 .panel-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}
@@ -335,7 +333,6 @@ body.hide-labels .st-label,body.hide-labels .land-label,body.hide-labels .road-l
 /* ---------------- 窄屏 ---------------- */
 @media (max-width:1500px){
   .panel-left{width:318px}
-  .panel-right{width:322px}
   .map-tools{right:352px}
   .compass{right:358px}
   .brand{min-width:280px}
@@ -344,7 +341,6 @@ body.hide-labels .st-label,body.hide-labels .land-label,body.hide-labels .road-l
 }
 @media (max-width:1280px){
   .panel-left{width:296px;left:12px;top:78px}
-  .panel-right{width:300px;right:12px;top:78px}
   .timeline{left:12px;right:12px;bottom:12px;height:74px}
   .panel{max-height:calc(100vh - 200px)}
   .map-tools{right:326px}
@@ -358,7 +354,6 @@ body.hide-labels .st-label,body.hide-labels .land-label,body.hide-labels .road-l
 }
 @media (max-width:1100px){
   .main-nav{display:none}
-  .panel-right{display:none}
   .map-tools{right:12px}
   .compass{right:64px}
 }
@@ -398,13 +393,8 @@ button:disabled,input:disabled { opacity:.45; cursor:wait; }
 .mc-head p { font-size:11px; line-height:1.5; }
 .mc-grid span { font-size:10px; }
 .mc-advice p { font-size:12px; }
-body[data-view="monitor"] .panel-right .sub,body[data-view="monitor"] .dispatch-list { display:none; }
-body[data-view="monitor"] .alert-list { max-height:390px; }
-body[data-view="simulate"] .panel-left { border-color:var(--cyan); }
-body[data-view="dispatch"] .alert-list { max-height:115px; }
-body[data-view="dispatch"] .dispatch-list { max-height:340px; }
 @media (min-width:1600px) {
-  .panel-left,.panel-right { width:360px; }
+  .panel-left { width:360px; }
   .panel-head h2 { font-size:18px; }
   .scenario-name { font-size:15px; }
   .scenario-tabs button { font-size:13px; }
@@ -422,17 +412,12 @@ body[data-view="dispatch"] .dispatch-list { max-height:340px; }
   .top-right { gap:12px; }
   .weather { display:none; }
   .brand { min-width:210px; }
-  .panel-left,.panel-right { max-height:calc(100vh - 212px); }
+  .panel-left { max-height:calc(100vh - 212px); }
   .rain-chart-wrap { height:64px; }
   .scenario-desc { font-size:11px; }
   .view-presets { left:355px; }
 }
 @media (max-width:1100px) { .scene-caption { right:100px; } }
-/* Keep the risk legend visible at 1366×768; lists scroll inside the panel. */
-.panel-right { display:flex; flex-direction:column; }
-.panel-right > .panel-head,.panel-right > .legend { flex-shrink:0; }
-.panel-right .alert-list { flex:1 1 225px; min-height:100px; }
-.panel-right .dispatch-list { flex:1 1 170px; min-height:80px; }
 @media (max-width:1500px) and (max-height:820px) {
   .panel-left { padding:12px; }
   .panel-left .rain-chart-wrap { height:48px; }
@@ -441,4 +426,3 @@ body[data-view="dispatch"] .dispatch-list { max-height:340px; }
   .panel-left .stat { padding:7px 9px; }
   .panel-left .panel-head { margin-bottom:9px; }
 }
-@media (max-width:1100px) { .panel-right { display:none; } }
