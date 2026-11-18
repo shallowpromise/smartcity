@@ -1,4 +1,5 @@
 import { syncGlassSelection } from './glass.js';
+import { drawPair } from './analysis-map.js';
 import { wetGridStats, levelOf, riskThresholds, levelColor, fmtClock, fmtT, num, clamp } from './utils.js';
 
 const $ = (id) => document.getElementById(id);
@@ -140,12 +141,11 @@ function trendArrow(d) {
 
 function adviceFor(s, depth, lv) {
   const t = TYPE[s.type] || '监测点';
-  if (depth < 0.05) return `${s.name}当前无有效积水，维持 5 分钟/次滚动监测；检查雨量计、水位计与视频在线状态。`;
-  if (s.type === 'underpass') return `立即启动${s.name}泵站，封闭隧道双向交通，设置水位标尺与警示屏；水位超过 30cm 严禁车辆通行，超过 50cm 组织人员撤离。`;
-  if (s.type === 'river') return `加密${s.name}河道水位与流速监测，联动上游水库泄洪调度；关注河水倒灌与堤岸险情，提前转移低洼岸线人员。`;
-  if (s.type === 'community') return `通知${s.street || ''}网格员排查低洼院落、地下车库与独居老人；必要时启动人员转移，布设沙袋与移动泵。`;
-  if (lv.key === 'purple' || lv.key === 'red') return `立即对${s.name}实施交通管制，部署移动泵车抽排，清理雨水篦子；通过诱导屏发布绕行信息。`;
-  return `加密${s.name}巡查频次，预置抢险班组与移动泵车，检查雨水口堵塞与管网液位，做好信息报送。`;
+  if (depth < 0.05) return s.name+'模拟水深较低，可结合现场监测记录复核。';
+  if (s.type === 'underpass') return '优先核对'+s.name+'下穿段现场水深、泵站运行及交管通告。';
+  if (s.type === 'river') return '结合河道水位、堤岸巡查及上下游工况复核'+s.name+'周边的顶托风险。';
+  if (s.type === 'community') return '建议复核'+(s.street||'属地')+'地下车库、低洼院落与人员通行条件。';
+  return s.name+'为'+t+'模型点，当前'+lv.long+'。建议核对现场积水和道路管制状态。';
 }
 
 export const ui = {
@@ -209,6 +209,10 @@ export const ui = {
     };
     $('modal-close').onclick = () => this.closeModal();
     $('mc-close2').onclick = () => this.closeModal();
+    $('mc-verify').onclick = () => { this.closeModal(); this.setView('analysis','verify'); };
+    $('model-verify').onclick=()=>this.setView('analysis','verify');
+    $('risk-rain').onclick=()=>this.setView('analysis','rain');
+    $('an-play').onclick=()=>this.app.togglePlay();
     $('mc-locate').onclick = () => {
       if (this.modalSensor) this.app.flySensor(this.modalSensor.id);
       this.closeModal();
@@ -323,7 +327,7 @@ export const ui = {
     this.dom.timeline.setAttribute('aria-valuetext', fmtT(t));
     this.dom.alerts.innerHTML = '';
     if (!active.length && missing < list.length) {
-      this.dom.alerts.appendChild(el('div', 'alert-empty', '<b>当前无有效积水告警</b>当前有数据点位低于演示预警阈值。'));
+      this.dom.alerts.appendChild(el('div', 'alert-empty', '<b>当前无有效积水告警</b>当前有数据点位低于模型预警阈值。'));
     }
     if (missing) this.dom.alerts.appendChild(el('div', 'alert-empty', `${missing} 个点位暂无数据，不纳入风险统计。`));
     {
@@ -352,12 +356,12 @@ export const ui = {
     this.dom.dispatch.innerHTML = '';
     const items = [];
     if (!active.length) {
-      items.push({ p: 'P3', c: '#35d0a5', title: '维持常态监测', body: '当前有数据点位未触发演示阈值。处置建议仅作课程示意，未接入实际调度。', team: '指挥中心', eta: '持续' });
+      items.push({ p: 'P3', c: '#35d0a5', title: '维持常态监测', body: '当前模型点位均低于风险阈值。可核对雨量、水深与现场巡查记录。', team: '指挥中心', eta: '持续' });
     } else {
       const max = active[0];
       const lv = max.level.key;
       if (lv === 'purple' || lv === 'red' || max.depth >= 0.7) {
-        items.push({ p: 'P0', c: '#ff4d5e', title: `高风险响应建议 · ${max.street || ''}`, body: `以${max.name}为中心实施交通管制与人员疏导，调派大流量泵车与抢险队伍，同步关闭下穿隧道与地下空间入口。`, team: '区三防指挥部', eta: '立即' });
+        items.push({ p: 'P0', c: '#ff4d5e', title: `高风险响应建议 · ${max.street || ''}`, body: `以${max.name}为重点复核现场水深、通行和排水设施状态，联系属地部门评估交通疏导及抽排需求。`, team: '区三防指挥部', eta: '立即' });
       } else if (max.depth >= 0.35) {
         items.push({ p: 'P1', c: '#ff9f43', title: `重点布防 · ${max.name}`, body: '预置移动泵车与抢险班组，清理雨水篦子，布设警示标志与诱导屏，做好封闭准备。', team: '排水抢险队', eta: '15 分钟' });
       } else {
@@ -369,8 +373,8 @@ export const ui = {
         items.push({
           p: s.depth >= 0.5 ? 'P0' : s.depth >= 0.3 ? 'P1' : 'P2',
           c: s.depth >= 0.5 ? '#ff4d5e' : s.depth >= 0.3 ? '#ff9f43' : '#ffd166',
-          title: `${under ? '封闭' : '处置'} · ${s.name}`,
-          body: under ? '启动隧道泵站，双向封闭，禁止车辆通行；水位超过 30cm 时组织滞留人员撤离。' : '设置警示与绕行标志，部署移动泵抽排，排查周边雨水口与管网。',
+          title: `${under ? '下穿核查' : '现场核查'} · ${s.name}`,
+          body: under ? '核对下穿段警示、泵站工况及现场水深，由主管部门确认封控状态。' : '设置警示与绕行标志，部署移动泵抽排，排查周边雨水口与管网。',
           team: under ? '交警 + 排水抢险队' : '排水抢险队',
           eta: under ? '10 分钟' : '20 分钟',
         });
@@ -381,7 +385,7 @@ export const ui = {
       div.style.setProperty('--c', it.c);
       div.innerHTML = `<div class="di-top"><span class="p">${it.p}</span><span class="di-title">${it.title}</span></div>
         <div class="di-body">${it.body}</div>
-        <div class="di-meta"><span>责任：<b>${it.team}</b></span><span>时限：<b>${it.eta}</b></span></div>`;
+        <div class="di-meta"><span>建议协同：<b>${it.team}</b></span><span>建议时效：<b>${it.eta}</b></span></div>`;
       this.dom.dispatch.appendChild(div);
     }
   },
@@ -415,8 +419,15 @@ export const ui = {
     this.dom.mcThr.innerHTML = `${(riskThresholds(s.type)[0] * 100).toFixed(1)}<i>cm</i>`;
     this.dom.mcAdvice.textContent = depth == null ? '暂无模型水深，无法生成处置建议。' : adviceFor(s, depth, lv);
     const hasSeries = ss?.series.every(Number.isFinite);
-    $('mc-chart-note').textContent = hasSeries ? `模型水深过程 · ${fmtT(0)} — ${fmtT(this.scn.duration)} · 虚线为演示黄 / 橙 / 红阈值` : '过程线含缺测值，暂无完整曲线';
-    if (hasSeries) drawSensor(this.dom.mcCanvas, ss.series, riskThresholds(s.type).slice(1, 4), this.idx);
+    $('mc-chart-note').textContent = hasSeries ? `模型水深过程 · ${fmtT(0)} — ${fmtT(this.scn.duration)} · 虚线为模型黄 / 橙 / 红阈值` : '过程线含缺测值，暂无完整曲线';
+    const nearby=this.app.analysis?.nearby(s);
+    if (nearby && hasSeries) {
+      drawPair(this.dom.mcCanvas,nearby.v.observed,ss.series.map(v=>v*100),this.scn.frames.map(f=>f.t),this.idx);
+      $('mc-chart-note').textContent='蓝线为虚拟点模型水深，橙点为附近实测站 '+nearby.v.station.name+'，相距 '+Math.round(nearby.d)+' m。校核页按实测站所在网格计算误差。';
+    } else if (hasSeries) {
+      drawSensor(this.dom.mcCanvas, ss.series, riskThresholds(s.type).slice(1, 4), this.idx);
+      $('mc-chart-note').textContent+=' · 未验证（200 m 内无同期对照）';
+    }
     else { const {ctx, w, h} = setupCanvas(this.dom.mcCanvas); ctx.clearRect(0, 0, w, h); }
   },
 
@@ -427,12 +438,13 @@ export const ui = {
     if (this._returnFocus?.isConnected) this._returnFocus.focus();
   },
 
-  setView(view) {
+  setView(view,tab) {
     document.body.classList.remove('map-focused');
     $('btn-focus').setAttribute('aria-pressed', 'false');
     $('btn-focus').textContent = '专注地图';
     document.body.dataset.view = view;
     const ready = this.app.routeView.show(view === 'routes');
+    const analysisReady = this.app.analysis.show(view === 'analysis',tab);
     document.querySelectorAll('.nav-item').forEach(b => {
       b.classList.toggle('active', b.dataset.view === view);
       b.setAttribute('aria-pressed', String(b.dataset.view === view));
@@ -440,7 +452,7 @@ export const ui = {
     syncGlassSelection(document.querySelector('.main-nav'));
     const target = { monitor: this.dom.alerts, simulate: this.dom.tabs, dispatch: this.dom.dispatch }[view];
     target?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    return ready;
+    return view === 'analysis' ? analysisReady : ready;
   },
 
   setLoading(loading, message = '', error = false) {
@@ -458,6 +470,8 @@ export const ui = {
     this.dom.play.classList.toggle('playing', b);
     this.dom.play.setAttribute('aria-label', b ? '暂停推演' : '播放推演');
     this.dom.play.setAttribute('aria-pressed', String(b));
+    $('an-play').textContent=b?'暂停':'播放';
+    $('an-play').setAttribute('aria-pressed',String(b));
   },
 
   toast(msg) {

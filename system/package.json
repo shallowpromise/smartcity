@@ -1,7 +1,7 @@
 ﻿{
   "name": "shenlan-flood-twin",
   "version": "1.0.0",
-  "description": "深澜 · 城市积水风险智慧预警平台（课程设计原型）",
+  "description": "深澜 · 城市积水风险智慧预警平台",
   "type": "module",
   "scripts": {
     "start": "node server.mjs",

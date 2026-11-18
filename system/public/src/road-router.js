@@ -53,7 +53,7 @@ class MinHeap {
   }
 }
 
-export function shortestPath(net, start, end, allowed = () => true) {
+export function shortestPath(net, start, end, allowed = () => true, costOf = i => net.lengths[i]) {
   if (!net.nodes[start] || !net.nodes[end] || start === end) return null;
   const queue = new MinHeap(), distance = new Float64Array(net.edges.length).fill(Infinity);
   const previous = new Int32Array(net.edges.length);
@@ -66,12 +66,14 @@ export function shortestPath(net, start, end, allowed = () => true) {
       const edges = [];
       for (let i = incoming; i >= 0; i = previous[i]) edges.push(i);
       edges.reverse();
-      return {edges, lengthM:cost, points:[start, ...edges.map(i=>net.edges[i][1])].map(i=>net.nodes[i].slice(1))};
+      return {edges, lengthM:edges.reduce((sum,i)=>sum+net.lengths[i],0),
+        points:[start, ...edges.map(i=>net.edges[i][1])].map(i=>net.nodes[i].slice(1))};
     }
     for (const edge of net.outgoing[node]) {
       if (incoming >= 0 && (net.edges[edge][1] === net.edges[incoming][0] || net.forbidden.get(incoming)?.has(edge))) continue;
-      const next = cost + net.lengths[edge];
-      if (next >= distance[edge] || !allowed(edge)) continue;
+      if (!allowed(edge)) continue;
+      const next = cost + costOf(edge);
+      if (next >= distance[edge]) continue;
       distance[edge] = next;
       previous[edge] = incoming;
       queue.push(next,edge);
@@ -100,7 +102,7 @@ function sections(net, from, to) {
   return spans;
 }
 
-export function routeAtFrame(net, start, end, baseline, depth, limit) {
+export function routeAtFrame(net, start, end, baseline, depth, limit, preference = 'short') {
   if (start === end) return {status:'same'};
   if (!baseline) return {status:'disconnected'};
   if (depth?.length !== net.grid[0]*net.grid[1]) return {status:'unknown'};
@@ -117,7 +119,13 @@ export function routeAtFrame(net, start, end, baseline, depth, limit) {
   }
   const maxDepth = path => path.edges.reduce((m,e)=>Math.max(m,peak(e)),0);
   const baselinePeak = maxDepth(baseline);
-  const alternative = baselinePeak < limit ? baseline : shortestPath(net,start,end,i=>peak(i)<limit);
+  let alternative;
+  if (preference === 'low') {
+    const classPenalty={primary:1,secondary:1.02,tertiary:1.04,unclassified:1.06,residential:1.08,living_street:1.12};
+    const cost=i=>net.lengths[i]*(1+3*(peak(i)/limit)**2)*(classPenalty[net.wayClasses?.[net.edges[i][3]]]??1.06);
+    alternative=shortestPath(net,start,end,i=>peak(i)<limit,cost);
+    if(alternative?.edges.length===baseline.edges.length && alternative.edges.every((e,i)=>e===baseline.edges[i])) alternative=baseline;
+  } else alternative=baselinePeak < limit ? baseline : shortestPath(net,start,end,i=>peak(i)<limit);
   const flooded = [];
   let hotspot;
   for (const [k,edge] of baseline.edges.entries()) {
@@ -140,5 +148,6 @@ export function routeAtFrame(net, start, end, baseline, depth, limit) {
   let status = alternative === baseline ? 'clear' : alternative ? 'detour' : 'blocked';
   if (!alternative && [...peaks.values()].some(Number.isNaN) &&
       shortestPath(net,start,end,i=>!(peak(i)>=limit))) status = 'unknown';
-  return {status, baseline, alternative, baselinePeak, alternativePeak:alternative ? maxDepth(alternative) : null, flooded, hotspot};
+  return {status, code:status==='blocked'?'no_safe_route':status, baseline, alternative, baselinePeak,
+    alternativePeak:alternative ? maxDepth(alternative) : null, flooded, hotspot};
 }

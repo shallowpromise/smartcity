@@ -8,6 +8,8 @@ import { createSensors } from './markers.js';
 import { ui } from './ui.js';
 import { mountGlass } from './glass.js';
 import { createRouteView } from './routes.js';
+import { createAnalysis } from './analysis-view.js';
+import { mountRunoff } from './runoff-card.js';
 import { installTimeline } from './timeline.js';
 
 const app = {
@@ -113,6 +115,8 @@ async function boot() {
 
     progress(94, '装载暴雨情景与预警规则…');
     app.routeView = createRouteView(app,fetchJSON);
+    app.analysis = createAnalysis(app,fetchJSON,view=>ui.setView(view));
+    mountRunoff();
     ui.init(app);
     ui.setScenarios(scenarios);
     await app.setScenario(scenarios[0].id, false);
@@ -128,7 +132,10 @@ async function boot() {
       setTimeout(() => {
         document.getElementById('loader').style.display = 'none';
         app.togglePlay(false);
-        if (new URLSearchParams(location.search).get('view') === 'routes') {
+        const params = new URLSearchParams(location.search);
+        if (params.get('view') === 'analysis') {
+          ui.setView('analysis',params.get('tab'));
+        } else if (params.get('view') === 'routes') {
           ui.setView('routes').then(() => app.routeView.showExample());
         }
       }, 700);
@@ -199,7 +206,7 @@ app.resetDemo = async function () {
   ui.setView('overview');
   document.querySelectorAll('.panel').forEach(p => p.scrollTop = 0);
   app.flyPreset('initial');
-  ui.toast('已恢复演示初始状态：9·7 复盘 / T+00:00 / 暂停 / 1×');
+  ui.toast('已重置推演至 9·7 复盘 / T+00:00 / 暂停 / 1×');
 };
 
 app.selectSensor = function (id) { app.selectedId = id; };

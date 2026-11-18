@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "quantity": "surface_depth",
+  "unit": "cm",
+  "crs": "WGS84",
+  "sourceName": "",
+  "sourceUrl": "",
+  "stations": [
+    {"id": "", "name": "", "longitude": null, "latitude": null, "records": [{"time": "", "value": null}]}
+  ]
+}

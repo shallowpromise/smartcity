@@ -14,7 +14,8 @@ export function createRouteView(app, fetchJSON) {
   app.scene.add(group);
   let net, pending, result, baseline, picking, pointerDown, active = false;
   const from = $('route-from'), to = $('route-to'), limit = $('route-limit');
-  const scenario = $('route-scenario');
+  const scenario = $('route-scenario'), choice=$('route-choice');
+  let facility=null;
   const [width, height] = app.meta.world;
   const usualMaxDistance = app.controls.maxDistance;
   const hint = $('pick-hint');
@@ -70,7 +71,8 @@ export function createRouteView(app, fetchJSON) {
   function frame() {
     if (!active || !net || !app.currentDepth) return;
     const start = Number(from.value), end = Number(to.value);
-    result = routeAtFrame(net,start,end,baseline,app.currentDepth,Number(limit.value));
+    const preference=facility?choice.value:'short';
+    result = routeAtFrame(net,start,end,baseline,app.currentDepth,Number(limit.value),preference);
     const {status, alternative, hotspot} = result;
     const failure = {same:'请选择两个不同的路网节点。', disconnected:'这两个节点在当前有向路网上不可达。',
       blocked:'当前时刻没有满足水深条件的路线。', unknown:'路面水深资料不足。'};
@@ -78,8 +80,11 @@ export function createRouteView(app, fetchJSON) {
     $('route-time').textContent = app.scenario.short + ' · ' + fmtT(app.scenario.frames[app.idx].t);
     $('route-base').textContent = baseline ? distance(baseline.lengthM) + ' · 最高 ' + cm(result.baselinePeak) : '—';
     $('route-alt').textContent = alternative ? distance(alternative.lengthM) + ' · 最高 ' + cm(result.alternativePeak) : '—';
+    $('route-result').dataset.routeStatus=result.code||status;
+    $('route-alt-label').textContent=preference==='low'?'低水深优先路线':'避水最短路线';
     $('route-result').textContent = failure[status] || (status === 'clear' ? '常规路线低于阈值，无需绕行。' :
-      '避开' + (hotspot?.name || '风险路段') + '，多走 ' + distance(alternative.lengthM-baseline.lengthM) + '。');
+      (hotspot?'避开'+hotspot.name:preference==='low'?'按水深与道路等级选线':'绕开缺测路段')+
+      '，多走 ' + distance(Math.max(0,alternative.lengthM-baseline.lengthM)) + '。');
     const streets = alternative && [...new Set(alternative.edges.map(i=>net.names[net.edges[i][2]]).filter(Boolean))];
     $('route-streets').textContent = streets?.length ? '途经 ' + streets.join('、') : '';
     clearLines();
@@ -95,6 +100,21 @@ export function createRouteView(app, fetchJSON) {
     baseline = shortestPath(net, Number(from.value), Number(to.value));
     frame();
     if (fit) locate();
+  }
+
+  function setFacility(f) {
+    facility=f;
+    $('route-transfer').hidden=$('route-choice-label').hidden=!f;
+    $('route-transfer').textContent=f?'接驳目标 · '+f.name+'。道路节点距场所参考点 '+f.roadOffsetM+' m，实际入口与开放状态待核。':'';
+    choice.value='short';
+  }
+  function destination(f) {
+    const index=net?.nodes.findIndex(n=>n[0]===f.roadNode)??-1;
+    if(index<0){$('route-result').textContent='场所接驳节点不可用。';return;}
+    if(![...to.options].some(o=>o.value===String(index)))to.add(new Option(f.name+'附近道路',String(index)));
+    to.value=String(index);
+    setFacility(f);
+    selectNodes();
   }
 
   function locate() {
@@ -145,6 +165,7 @@ export function createRouteView(app, fetchJSON) {
     });
     if (best<0) { hint.querySelector('span').textContent='附近 120 米内无可选节点，请点近一些。'; return; }
     const target = picking;
+    if(target===to)setFacility(null);
     if (!target.querySelector('option[value="'+best+'"]')) {
       const edge = net.edges.find(([a,b])=>a===best || b===best);
       target.add(new Option((net.names[edge[2]] || '地面道路')+' · '+net.nodes[best][0],String(best)));
@@ -155,6 +176,7 @@ export function createRouteView(app, fetchJSON) {
   });
 
   function exampleNodes() {
+    setFacility(null);
     [from.value,to.value] = example.map(osm=>String(net.nodes.findIndex(n=>n[0]===osm)));
     limit.value='15';
   }
@@ -220,7 +242,9 @@ export function createRouteView(app, fetchJSON) {
     }
     if (active) selectNodes();
   }
-  from.onchange = to.onchange = () => selectNodes();
+  from.onchange = () => selectNodes();
+  to.onchange = () => {setFacility(null);selectNodes();};
+  choice.onchange = () => {frame();locate();};
   scenario.onchange = async () => { await app.setScenario(scenario.value,true); scenario.value=app.scenario.id; };
   limit.onchange = () => { frame(); locate(); };
   $('route-example').onclick = showExample;
@@ -229,5 +253,5 @@ export function createRouteView(app, fetchJSON) {
     locate();
   };
   addEventListener('resize', locate);
-  return {show,frame,locate,showExample,reset() { if (net) exampleNodes(); clearLines(); }};
+  return {show,frame,locate,showExample,destination,reset() { if (net) exampleNodes(); clearLines(); }};
 }

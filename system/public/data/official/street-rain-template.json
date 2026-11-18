@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "quantity": "accumulated_rain",
+  "unit": "mm",
+  "sourceName": "",
+  "streets": [
+    {"street": "福田街道", "observedAt": "", "rain30mMm": null, "rain1hMm": null, "rain3hMm": null}
+  ]
+}

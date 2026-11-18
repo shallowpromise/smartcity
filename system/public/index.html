@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="./src/style.css" />
 <link rel="stylesheet" href="./src/apple-design.css" />
 <link rel="stylesheet" href="./src/liquid-glass.css" />
+<link rel="stylesheet" href="./src/analysis.css" />
 <script type="importmap">
 { "imports": { "three": "./vendor/three/three.module.js", "three/addons/": "./vendor/jsm/" } }
 </script>
@@ -42,6 +43,7 @@
       <button class="nav-item" data-view="simulate" aria-pressed="false"><i></i>推演研判</button>
       <button class="nav-item" data-view="dispatch" aria-pressed="false"><i></i>联动处置</button>
       <button class="nav-item" data-view="routes" aria-pressed="false"><i></i>积水绕行</button>
+      <button class="nav-item" data-view="analysis" aria-pressed="false"><i></i>数据研判</button>
     </nav>
 
     <div class="top-right">
@@ -54,7 +56,7 @@
         <b id="clock-time">--:--:--</b>
         <span id="clock-date">2026-11-17 星期二</span>
       </div>
-      <div class="status-chip"><i></i>模型演示</div>
+      <div class="status-chip"><i></i>情景分析</div>
     </div>
   </header>
 
@@ -109,8 +111,15 @@
         <p id="wet-count"></p>
         <p>中位数只统计模型水深达到 5 cm 的网格。虚拟监测点优先选在易涝格，告警按水深排序。</p>
         <p>模型用 SCS-CN 按地表类型估算下渗等降雨损失，再计算地表汇流和概化排水。局部水深受低洼地形、周边来水和排水能力影响。</p>
+        <div class="runoff-card">
+          <label for="runoff-rain">地表产流对比</label>
+          <select id="runoff-rain" aria-label="累计降雨"><option value="50">降雨 50 mm</option><option value="100" selected>降雨 100 mm</option><option value="200">降雨 200 mm</option></select>
+          <div data-runoff-cn="58"><b>绿地</b><meter aria-label="绿地径流量"></meter><output></output></div>
+          <div data-runoff-cn="96"><b>道路</b><meter aria-label="道路径流量"></meter><output></output></div>
+          <p>SCS-CN 单位面积产流。余量包含下渗、截留等损失，地面积水另受汇流与排水影响。</p>
+        </div>
       </details>
-      <p id="model-note-text">预计算模型与虚拟点位，未经逐点实测率定。仅供课程展示。</p>
+      <p id="model-note-text">预计算水深 · 虚拟点位。<button id="model-verify" class="an-inline">实测覆盖与误差</button></p>
     </div>
   </aside>
 
@@ -123,13 +132,13 @@
     <div class="alert-list" id="alert-list"></div>
 
     <div class="panel-head sub">
-      <div><h2>处置建议示意</h2></div>
-      <span class="auto-tag">课程演示</span>
+      <div><h2>处置建议</h2></div>
+      <span class="auto-tag">待现场核实</span>
     </div>
     <div class="dispatch-list" id="dispatch-list"></div>
 
     <div class="legend">
-      <div class="legend-head">点位演示风险等级 <span>单位：cm</span></div>
+      <div class="legend-head">模型点位风险等级 <span>单位：cm</span></div>
       <div class="legend-items">
         <div><i style="--c:#4da3ff"></i>蓝 5–15</div>
         <div><i style="--c:#ffd166"></i>黄 15–30</div>
@@ -137,7 +146,7 @@
         <div><i style="--c:#ff4d5e"></i>红 50–100</div>
         <div><i style="--c:#c77dff"></i>紫 ≥100</div>
       </div>
-      <p class="legend-note">道路/社区基准；下穿 ×0.62，河道 ×1.6。沿用原型色标，非官方预警标准。水面颜色表示连续水深。</p>
+      <p class="legend-note">道路和社区采用基准分级，下穿 ×0.62，河道 ×1.6。水面颜色表示连续水深。<button id="risk-rain" class="an-inline">查看街道降雨阈值</button></p>
     </div>
   </aside>
 
@@ -148,17 +157,94 @@
     <div class="route-stop"><label for="route-to">终点</label><select id="route-to" disabled></select><button data-pick="to" disabled aria-label="在地图选终点">图选</button></div>
     <label>排除水深<select id="route-limit" disabled><option value="10">≥ 10 cm</option><option value="15" selected>≥ 15 cm</option><option value="30">≥ 30 cm</option></select></label>
     <dl><dt><i class="route-key normal"></i>常规最短路线</dt><dd id="route-base">—</dd>
-    <dt><i class="route-key avoid"></i>避水最短路线</dt><dd id="route-alt">—</dd></dl>
+    <dt><i class="route-key avoid"></i><span id="route-alt-label">避水最短路线</span></dt><dd id="route-alt">—</dd></dl>
+    <p id="route-transfer" class="legend-note" hidden></p>
+    <label id="route-choice-label" hidden>候选路线<select id="route-choice"><option value="short">最短避水路线</option><option value="low">低水深优先</option></select></label>
     <p id="route-result" role="status"></p><p id="route-streets"></p>
     <div class="route-actions">
       <button class="text-tool" id="route-example" disabled>查看福华一路示例</button>
       <button class="text-tool" id="route-locate" disabled>定位路线</button>
     </div>
-    <p class="legend-note">红色路段达到排除水深。拖动时间轴可重新计算。约 32 米地面积水模拟，部分禁转资料不完整。仅供课程演示。</p>
+    <p class="legend-note">红色路段达到排除水深。拖动时间轴可重新计算。约 32 米地面积水模拟，部分禁转资料不完整。实际通行以现场交通管制为准。</p>
     <a class="route-credit" href="https://www.openstreetmap.org/copyright">道路数据 © OpenStreetMap contributors</a>
   </aside>
 
   <div id="pick-hint" hidden><span></span><button>取消选点</button></div>
+
+  <aside class="panel analysis-panel" aria-label="数据研判">
+    <header class="analysis-head"><h2>数据研判</h2><span id="an-clock"></span><button id="an-play" aria-pressed="false">播放</button></header>
+    <nav class="analysis-nav" aria-label="研判工具">
+      <button data-analysis="rain" aria-pressed="true">街道雨量</button><button data-analysis="sites">设施</button>
+      <button data-analysis="compare">工况</button><button data-analysis="verify">实测校核</button><button data-analysis="sources">来源</button>
+    </nav>
+    <p id="an-status" role="status" hidden></p>
+    <label id="an-scenario-label" class="an-field">模型情景<select id="an-scenario"></select></label>
+    <section data-section="rain">
+      <div class="an-title"><h3>街道积水降雨阈值</h3><span>2026 版 · 福田区</span></div>
+      <label class="an-field">对照雨量<select id="an-rain-mode"><option value="observed">街道实况</option><option value="scenario">当前情景雨量</option></select></label>
+      <svg id="an-street-map" viewBox="0 0 380 160" role="img" aria-label="福田区十街道降雨阈值分布"></svg>
+      <p id="an-rain-status" class="an-note"></p>
+      <label class="an-field">选择街道<select id="an-street"></select></label>
+      <div class="an-glass"><table class="an-table"><thead><tr><th>历时</th><th>累计雨量</th><th>官方阈值</th><th>距阈值</th></tr></thead><tbody id="an-rain-rows"></tbody></table></div>
+      <p id="an-risk-note" class="an-callout"></p>
+      <a id="an-guide-source" class="an-link" target="_blank" rel="noopener">查看阈值出处 ↗</a>
+      <details class="an-detail"><summary>导入街道实况雨量</summary>
+        <p>使用同一时刻结束的 30、60、180 分钟累计雨量，单位 mm。缺少窗口填 null，保留原观测时间。</p>
+        <input id="street-file" aria-label="街道累计雨量 JSON" type="file" accept=".json,application/json">
+        <a href="./data/official/street-rain-template.json" download>下载空白格式模板</a>
+        <p id="street-message" role="status"></p><button id="street-clear" hidden>清除导入雨量</button>
+      </details>
+      <details class="an-detail"><summary>暴雨强度查算 · 2024 版</summary>
+        <div class="an-fields"><label>重现期<select id="idf-period"><option value="5">5 年</option><option value="50">50 年</option></select></label>
+        <label>历时<select id="idf-duration"><option value="30">30 分钟</option><option selected value="60">60 分钟</option><option value="120">120 分钟</option><option value="180">180 分钟</option></select></label></div>
+        <p id="idf-result" class="an-callout"></p><a id="idf-source" target="_blank" rel="noopener">中部流域 · 官方表 3 ↗</a>
+      </details>
+    </section>
+    <section data-section="sites" hidden>
+      <div class="an-title"><h3>设施暴露与可达性</h3><span>名录与模型</span></div>
+      <label class="an-field">搜索场所<input id="site-search" type="search" placeholder="名称、地址或社区" /></label>
+      <div class="an-fields"><label>设施类别<select id="site-kind"><option value="">避难场所</option><option value="indoor">室内场所</option><option value="outdoor">室外场所</option><option value="metro">地铁出入口</option></select></label>
+      <label>街道<select id="site-street"><option value="">全部街道</option></select></label>
+      <label>设施类型<select id="site-type"><option value="">全部类型</option></select></label>
+      <label>登记容量<select id="site-capacity"><option value="">不限</option><option value="100">至少 100 人</option><option value="300">至少 300 人</option><option value="500">至少 500 人</option></select></label></div>
+      <p id="site-count" class="an-note" role="status"></p><label class="an-field">查询结果<select id="site-select"></select></label>
+      <details id="site-area" class="an-detail"><summary>全区设施分布</summary>
+        <svg id="site-area-map" viewBox="0 0 380 160" role="img" aria-label="福田区已匹配的设施位置与三维模型范围"></svg>
+        <p>圆点为已定位设施，橙色为所选记录。虚线框为可计算水深的模型范围。</p>
+      </details>
+      <div id="site-info" class="an-glass"></div>
+      <div class="an-actions"><button id="site-fly">定位参考点</button><button id="site-route">比较接驳路线</button></div>
+      <p class="an-note" id="site-route-note"></p><h4>当前水深排行</h4><div id="site-ranking" class="an-list"></div>
+    </section>
+    <section data-section="compare" hidden>
+      <div class="an-title"><h3>同帧工况对比</h3><span>离线水动力计算</span></div>
+      <label class="an-field">对比工况<select id="an-variant"></select></label><p id="variant-params" class="an-note"></p>
+      <div class="an-twin"><figure><canvas id="base-field"></canvas><figcaption id="base-caption"></figcaption></figure>
+        <figure><canvas id="variant-field"></canvas><figcaption id="variant-caption"></figcaption></figure></div>
+      <p class="an-scale"><i></i>5 cm <i></i>15 cm <i></i>30 cm <i></i>50 cm <i></i>100 cm</p>
+      <div class="an-glass"><table class="an-table"><thead><tr><th>指标</th><th>基准</th><th>工况</th><th>变化</th></tr></thead><tbody id="variant-stats"></tbody></table></div>
+      <h4>点位水深变化</h4><div id="variant-rank" class="an-list"></div>
+      <p class="an-note">两幅图共用网格、色标和时间轴。三维主图显示基准情景。河道工况采用模型高程基准，尚无同期河道实测边界。</p>
+    </section>
+    <section data-section="verify" hidden>
+      <div class="an-title"><h3>实测与模型校核</h3><span>同期地面积水深度</span></div>
+      <p id="verify-summary" class="an-callout"></p>
+      <label class="an-field">对照站点<select id="verify-station"></select></label>
+      <div class="an-actions"><button id="verify-fly" disabled>定位实测站</button></div>
+      <div class="an-glass"><canvas id="verify-chart" role="img" aria-label="实测与模拟水深过程线"></canvas>
+        <p class="an-chart-key">● 实测站 <b>■ 模型网格</b> ◇ 虚拟点位</p></div>
+      <p id="verify-coverage" class="an-note"></p><div id="verify-metrics" class="an-glass"></div>
+      <label class="an-import">导入本地观测 JSON<input type="file" id="verify-file" accept=".json,application/json"></label>
+      <button id="verify-clear" hidden>清除本次导入</button><p id="verify-message" role="status" class="an-note"></p>
+      <details class="an-detail"><summary>文件格式与匹配方法</summary><p>使用 WGS84 经纬度、含时区的 ISO 时间和相对地面积水深度。相同站点的同时间记录须去重，缺测填 null。文件仅在当前浏览器内处理。</p>
+        <a href="./data/official/observation-template.json" download>下载空白格式模板</a>
+        <p>records 中每项含 time、value。回放期内的样本就近归入 10 分钟帧并取均值。站点优先取所在的开敞地面格，必要时取 48 m 内最近地面格。误差仅统计同期有效配对，排除编码达到 255 cm 的帧。阈值事件按 15 cm 判定。</p></details>
+    </section>
+    <section data-section="sources" hidden>
+      <div class="an-title"><h3>数据来源与覆盖</h3><span>2026-11-18 整理</span></div>
+      <div id="an-sources" class="an-list"></div><h4>待接入资料</h4><div id="an-pending" class="an-list"></div>
+    </section>
+  </aside>
 
   <!-- ============ 底部时间轴 ============ -->
   <footer class="timeline">
@@ -176,7 +262,7 @@
       </div>
       <div class="tl-right">
         <button class="text-tool" id="btn-peak">查看峰值</button>
-        <button class="text-tool" id="btn-demo-reset">恢复演示</button>
+        <button class="text-tool" id="btn-demo-reset">重置推演</button>
         <button class="tool" id="btn-cam-reset" title="复位视角"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
         <button class="tool" id="btn-full" title="全屏"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
       </div>
@@ -207,7 +293,7 @@
     <span id="cam-alt">H 680m</span>
   </div>
 
-  <div class="scene-caption"><b id="scene-summary">正在加载情景</b><span>福田数字孪生 · 虚拟监测点 · 仅供课程展示</span></div>
+  <div class="scene-caption"><b id="scene-summary">正在加载情景</b><span>福田数字孪生 · 模型水深 · 虚拟监测点</span></div>
   <div class="hint">左键旋转 · 右键平移 · 滚轮缩放 · 空格播放 · 方向键逐帧</div>
 
   <!-- ============ 监测点详情 ============ -->
@@ -225,16 +311,17 @@
         <div><span>模型水深</span><b id="mc-depth">--<i>m</i></b></div>
         <div><span>较前两帧 / cm</span><b id="mc-trend">--</b></div>
         <div><span>地面高程</span><b id="mc-ground">--<i>m</i></b></div>
-        <div><span>演示蓝色阈值</span><b id="mc-thr">--<i>m</i></b></div>
+        <div><span>模型蓝色阈值</span><b id="mc-thr">--<i>m</i></b></div>
       </div>
       <p id="mc-chart-note" class="legend-note"></p>
       <div class="mc-chart"><canvas id="mc-canvas"></canvas></div>
       <div class="mc-advice">
-        <div class="mc-advice-title">处置示意 · 非实际调度指令</div>
+        <div class="mc-advice-title">处置建议 · 待现场复核</div>
         <p id="mc-advice">—</p>
       </div>
       <div class="mc-actions">
         <button id="mc-locate">飞到监测点</button>
+        <button id="mc-verify" class="ghost">实测校核</button>
         <button id="mc-close2" class="ghost">关闭</button>
       </div>
     </div>

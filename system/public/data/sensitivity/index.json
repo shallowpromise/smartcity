@@ -1,0 +1,68 @@
+[
+  {
+    "id": "drain70",
+    "name": "排水能力 70%",
+    "baseScenario": "design-50",
+    "parameters": {
+      "drainFactor": 0.7
+    },
+    "note": "全域概化排水能力降至基准的 70%。",
+    "totalRainMm": 340.0
+  },
+  {
+    "id": "block",
+    "name": "局部排水堵塞",
+    "baseScenario": "design-50",
+    "parameters": {
+      "drainFactor": 0.2,
+      "bbox": [
+        114.08,
+        22.538,
+        114.088,
+        22.544
+      ]
+    },
+    "note": "东经 114.080–114.088°、北纬 22.538–22.544° 矩形内排水能力降至 20%。",
+    "totalRainMm": 340.0
+  },
+  {
+    "id": "stage25",
+    "name": "南侧较高水位",
+    "baseScenario": "design-50",
+    "parameters": {
+      "southStageM": 2.5
+    },
+    "note": "南缘开敞网格的边界水位在首小时升至模型高程 2.50 m，随后维持。",
+    "totalRainMm": 340.0
+  },
+  {
+    "id": "stage40",
+    "name": "南侧极端水位",
+    "baseScenario": "design-50",
+    "parameters": {
+      "southStageM": 4.0
+    },
+    "note": "南缘开敞网格的边界水位在首小时升至模型高程 4.00 m，随后维持。",
+    "totalRainMm": 340.0
+  },
+  {
+    "id": "idf5",
+    "name": "公式雨型 · 5 年",
+    "baseScenario": "design-5",
+    "parameters": {
+      "returnYears": 5
+    },
+    "note": "中部流域表 3，3 小时交替区块设计雨型，居中峰值。随后 5 小时无雨。",
+    "totalRainMm": 114.78
+  },
+  {
+    "id": "idf50",
+    "name": "公式雨型 · 50 年",
+    "baseScenario": "design-50",
+    "parameters": {
+      "returnYears": 50
+    },
+    "note": "中部流域表 3，3 小时交替区块设计雨型，居中峰值。随后 5 小时无雨。",
+    "totalRainMm": 175.46
+  }
+]

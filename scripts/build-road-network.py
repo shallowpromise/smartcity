@@ -33,7 +33,7 @@ def build(archive, controls):
     denied = {e["id"] for e in elements if e["type"] == "node" and
               next((e["tags"][k] for k in reversed(ACCESS_KEYS) if k in e["tags"]), None)
               not in {"yes", "designated", "permissive"}}
-    coords, arcs, street_names = {}, [], defaultdict(set)
+    coords, arcs, street_names, road_classes = {}, [], defaultdict(set), {}
     skipped_barriers = set()
     for way in archive["elements"]:
         tags = way.get("tags", {})
@@ -61,6 +61,7 @@ def build(archive, controls):
                 skipped_barriers.update({a,b} & denied)
                 continue
             coords[a], coords[b] = p, q
+            road_classes[way["id"]] = tags["highway"]
             if name:
                 street_names[a].add(name)
                 street_names[b].add(name)
@@ -114,7 +115,7 @@ def build(archive, controls):
 
     return {
         "version": 1, "world": META["world"], "grid": [NX,NY],
-        "nodes": [[n,*coords[n]] for n in ids], "names": names, "edges": edges,
+        "nodes": [[n,*coords[n]] for n in ids], "names": names, "edges": edges, "wayClasses": road_classes,
         "turns": sorted(forbidden),
         "junctions": [[index[n]," / ".join(sorted(street_names[n]))] for n in ids if len(street_names[n]) >= 2],
         "coverage": {"roadSnapshot":archive.get("osm3s",{}).get("timestamp_osm_base"),
