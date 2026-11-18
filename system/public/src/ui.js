@@ -423,6 +423,7 @@ export const ui = {
     $('btn-focus').setAttribute('aria-pressed', 'false');
     $('btn-focus').textContent = '专注地图';
     document.body.dataset.view = view;
+    this.app.routeView.show(view === 'routes');
     document.querySelectorAll('.nav-item').forEach(b => {
       b.classList.toggle('active', b.dataset.view === view);
       b.setAttribute('aria-pressed', String(b.dataset.view === view));

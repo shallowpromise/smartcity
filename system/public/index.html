@@ -40,6 +40,7 @@
       <button class="nav-item" data-view="monitor"><i></i>监测预警</button>
       <button class="nav-item" data-view="simulate"><i></i>推演研判</button>
       <button class="nav-item" data-view="dispatch"><i></i>联动处置</button>
+      <button class="nav-item" data-view="routes"><i></i>积水绕行</button>
     </nav>
 
     <div class="top-right">
@@ -134,6 +135,22 @@
       </div>
       <p class="legend-note">道路/社区基准；下穿 ×0.62，河道 ×1.6。沿用原型色标，非官方预警标准。水面颜色表示连续水深。</p>
     </div>
+  </aside>
+
+  <aside class="panel route-panel" aria-label="积水绕行">
+    <div class="panel-head"><h2>积水绕行</h2><span id="route-time"></span></div>
+    <label>起终点组合<select id="route-case" disabled aria-describedby="route-ends"></select></label>
+    <p id="route-ends"></p>
+    <label>排除水深<select id="route-limit" disabled><option value="10">≥ 10 cm</option><option value="15" selected>≥ 15 cm</option><option value="30">≥ 30 cm</option></select></label>
+    <dl><dt>常规路线 · 橙色虚线</dt><dd id="route-base">—</dd>
+    <dt>避水路线 · 青色实线</dt><dd id="route-alt">—</dd></dl>
+    <p id="route-result" role="status"></p><p id="route-streets"></p>
+    <div class="route-actions">
+      <button class="text-tool" id="route-example" disabled>查看红荔路绕行示例</button>
+      <button class="text-tool" id="route-locate" disabled>定位路线</button>
+    </div>
+    <p class="legend-note">拖动时间轴可比较各时刻。两线重合时显示青线。水深取地面道路沿线模型网格最大值，阈值仅用于课程演示，不作为出行依据。</p>
+    <a class="route-credit" href="https://www.openstreetmap.org/copyright">道路数据 © OpenStreetMap contributors</a>
   </aside>
 
   <!-- ============ 底部时间轴 ============ -->

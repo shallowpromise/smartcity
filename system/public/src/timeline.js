@@ -43,6 +43,7 @@ export function installTimeline(app, ui, fetchJSON) {
     else app.water.mesh.visible = false;
     app.frameSensors = app.sensors.map(s => ({ id: s.id, depth: app.scenario.sensors.find(ss => ss.id === s.id)?.series[app.idx] ?? null }));
     ui.renderFrame(app.scenario, app.idx);
+    app.routeView?.frame();
   };
 
   app.togglePlay = function (force) {

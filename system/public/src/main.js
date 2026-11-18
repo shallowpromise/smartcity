@@ -6,6 +6,7 @@ import { createWater } from './water.js';
 import { createRain } from './rain.js';
 import { createSensors } from './markers.js';
 import { ui } from './ui.js';
+import { createRouteView } from './routes.js';
 import { installTimeline } from './timeline.js';
 
 const app = {
@@ -110,6 +111,7 @@ async function boot() {
     app.sensorView = sensorView;
 
     progress(94, '装载暴雨情景与预警规则…');
+    app.routeView = createRouteView(app,fetchJSON);
     ui.init(app);
     ui.setScenarios(scenarios);
     await app.setScenario(scenarios[0].id, false);
@@ -189,6 +191,7 @@ app.resetDemo = async function () {
   ui.closeModal(); app.selectedId = null;
   for (const key of Object.keys(app.layers)) app.toggleLayer(key, true);
   document.querySelectorAll('[data-layer]').forEach(b => { b.classList.add('active'); b.setAttribute('aria-pressed', 'true'); });
+  app.routeView.reset();
   ui.setView('overview');
   document.querySelectorAll('.panel').forEach(p => p.scrollTop = 0);
   app.flyPreset('initial');

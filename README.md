@@ -6,6 +6,10 @@
 
 三维城市与六类图层；三套降雨情景；播放/暂停/倍速/时间轴；16 个虚拟监测点及水深过程线；风险统计、峰值定位、完整演示重置与处置建议示意。
 
+顶部选择「积水绕行」，再点「查看红荔路绕行示例」，即可定位 9·7 复盘的第 4 小时，对比两条路线的距离和沿线最高模型水深。可以切换红荔路、福华三路、福中一路三组起终点，改变演示阈值，或拖动时间轴。无候选线满足条件时，面板会给出提示。
+
+演示采用有向地面路网，按共享 OSM 节点连接道路，考虑基本单行和静态通行标签，排除已标注的桥隧及非地面层。固定路口的候选路线在三套情景各帧和三档阈值下离线求得，网页按当前帧重新比较。任意路口选点、桥隧、禁转、实测与规则校核所需资料见 [A 同学的数据与模型任务单](docs/A_ROUTE_HANDOFF.md)。
+
 所有数据均为静态文件。监测点为模型辅助选址的虚拟点位，水深为模型结果，未经逐点实测率定；仅供课程展示，不用于真实防汛决策。没有实时监测或实际调度接入。
 
 ## 本地运行
@@ -26,10 +30,12 @@ node server.mjs
 ## 验证
 
 ```bash
-node --test system/tests/timeline.test.mjs
+node --test system/tests/*.test.mjs
 ```
 
 浏览器回归需在 system 目录执行 `npm ci`、`npx playwright install chromium`；启动本地服务后运行 `node tests/browser.mjs`。`node tests/pages.mjs` 单独创建临时静态服务验证项目子路径。
+
+绕行交互回归可在服务启动后运行 `BASE_URL=http://127.0.0.1:8088 node tests/routes-browser.mjs`。如需重新生成候选路线，在仓库根目录运行 `python3 scripts/build-route-candidates.py /path/to/osm_raw.json`，传入课程源仓库的原始 OSM 文件。
 
 ## 数据来源与归属
 
